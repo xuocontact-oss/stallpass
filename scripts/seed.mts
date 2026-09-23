@@ -950,6 +950,37 @@ async function main() {
   }
   console.log(`  ${reviewCount} reviews`)
 
+  // Sales reports: DTLA asks vendors to report (6% of sales); most sample vendors have.
+  await must(db.from("markets").update({ sales_reporting: "required", sales_fee_percent: 6 }).eq("slug", CLAIMED_SLUG), "sales settings")
+  const { data: pastApps } = await db
+    .from("applications")
+    .select("id, vendor_id, market_id, event_dates")
+    .eq("market_id", marketIds.get(CLAIMED_SLUG)!)
+    .in("status", ["accepted", "paid"])
+  let salesCount = 0
+  for (const [i, a] of (pastApps ?? []).entries()) {
+    for (const d of a.event_dates.filter((x: string) => x < today)) {
+      if (i % 4 === 3) continue // leave a few unreported, so "Remind" has someone to remind
+      const gross = 60000 + ((i * 37 + d.charCodeAt(9) * 13) % 140) * 1000
+      await must(
+        db.from("sales_reports").insert({
+          application_id: a.id,
+          market_id: a.market_id,
+          vendor_id: a.vendor_id,
+          event_date: d,
+          gross_sales_cents: gross,
+          card_sales_cents: Math.round(gross * 0.78),
+          cash_sales_cents: gross - Math.round(gross * 0.78),
+          transactions: Math.round(gross / 1400),
+          source: i % 2 ? "square" : "manual",
+        }),
+        "sales report"
+      )
+      salesCount++
+    }
+  }
+  console.log(`  ${salesCount} sample sales reports`)
+
   console.log("Creating sample shoppers and shopper reviews…")
   const SHOPPER_REVIEWS: [number, string, number, [number, number | null, number | null, number | null], string][] = [
     [0, "sample-echo-lake-sunday-market", 6, [5, 4, 5, 4], "Our Sunday ritual. Great bread and coffee, and the kids love the lake. Get there before 10 for parking."],

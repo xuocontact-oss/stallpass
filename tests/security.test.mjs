@@ -486,6 +486,39 @@ await expect("Public can't read the vendor list", async () => { await q(`select 
 await as(O)
 await expect("Organizers can't see which vendors listed them", async () => (await rows(`select * from public.vendor_markets`)).length > 0, false)
 
+// --- Sales reports -------------------------------------------------------------
+// appB: B accepted at m2 (organizer O) for 2020-06-01, now paid. appA (A at m1, organizer O) accepted & verified.
+const report = (vendor, market, app, day, cents = 50000) => q(`insert into public.sales_reports(application_id,market_id,vendor_id,event_date,gross_sales_cents) values($1,$2,$3,$4,$5) returning id`, [app, market, vendor, day, cents])
+await as(B)
+let repB
+await expect("Accepted vendor reports sales for a past date", async () => { repB = (await report(vB, m2, appB, "2020-06-01")).rows[0].id }, true)
+await expect("Only one report per date (edit instead)", async () => { await report(vB, m2, appB, "2020-06-01") }, false)
+await expect("Can't report a date not in the application", async () => { await report(vB, m2, appB, "2020-06-02") }, false)
+await expect("Can't report for another vendor's application", async () => { await report(vB, m1.id, appA, past) }, false)
+await expect("Vendor corrects own report", async () => (await rows(`update public.sales_reports set gross_sales_cents=61000 where id=$1 returning id`, [repB])).length === 1, true)
+await expect("Vendor can't move a report to another market", async () => { await q(`update public.sales_reports set market_id=$1 where id=$2`, [m1.id, repB]) }, false)
+await as(A)
+await expect("Other vendors can't see B's sales", async () => (await rows(`select * from public.sales_reports`)).length > 0, false)
+await expect("Can't report a future date", async () => { await report(vA, m1.id, appA, future) }, false)
+await as(O)
+await expect("Market's organizer sees the sales report", async () => (await rows(`select gross_sales_cents from public.sales_reports where id=$1`, [repB]))[0]?.gross_sales_cents === 61000, true)
+await expect("Organizer can't change a vendor's numbers", async () => (await rows(`update public.sales_reports set gross_sales_cents=1 returning id`)).length > 0, false)
+await expect("Organizer can set sales reporting rules", async () => (await rows(`update public.markets set sales_reporting='required', sales_fee_percent=6 where id=$1 returning id`, [m2])).length === 1, true)
+await as(O2)
+await expect("Other organizers can't see the sales", async () => (await rows(`select * from public.sales_reports`)).length > 0, false)
+await asAnon()
+await expect("Public can't see any sales", async () => { await q(`select * from public.sales_reports`) }, false)
+// Square tokens are server-only
+await db.exec(`reset role; set request.jwt.claim.sub=''`)
+await q(`insert into public.pos_connections(vendor_id,provider,merchant_id,business_name,access_token_enc) values($1,'square','M1','B Square','encrypted')`, [vB])
+await as(B)
+await expect("Vendor sees they're connected to Square", async () => (await rows(`select * from public.my_pos_connections`)).length === 1, true)
+await expect("Vendor can't read the stored tokens", async () => { await q(`select access_token_enc from public.pos_connections`) }, false)
+await as(A)
+await expect("Other vendors don't see B's Square connection", async () => (await rows(`select * from public.my_pos_connections`)).length > 0, false)
+await as(ADMIN)
+await expect("Even the admin can't read Square tokens from the app", async () => { await q(`select access_token_enc from public.pos_connections`) }, false)
+
 // --- Suspended admin loses powers -----------------------------------------
 await db.exec(`reset role; set request.jwt.claim.sub=''`)
 await q(`update public.profiles set suspended_at=now() where id=$1`, [ADMIN])

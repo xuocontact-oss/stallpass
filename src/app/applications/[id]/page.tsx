@@ -11,6 +11,7 @@ import { deleteDraft, sendApplication, setApplicationStatus } from "@/actions/ap
 import { requireVendor } from "@/lib/auth"
 import { documentTypeLabel } from "@/lib/constants"
 import { formatDate, todayISO } from "@/lib/dates"
+import { formatMoney } from "@/lib/markets"
 import { createAdminClient, createClient } from "@/lib/supabase/server"
 import type { Application, ApplicationDocument, Market, Payment, Review } from "@/lib/types"
 
@@ -30,7 +31,7 @@ const SENT_NOTICES: Record<string, { tone: "good" | "warn"; text: string }> = {
 export default async function ApplicationPage({ params, searchParams }: PageProps<"/applications/[id]">) {
   const { vendor } = await requireVendor()
   const { id } = await params
-  const { sent, reviewed, payment } = await searchParams
+  const { sent, reviewed, payment, reported } = await searchParams
   const supabase = await createClient()
 
   const { data } = await supabase
@@ -44,11 +45,13 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
   const market = app.markets
   const today = todayISO()
 
-  const [{ data: docs }, { data: reviews }, { data: payments }] = await Promise.all([
+  const [{ data: docs }, { data: reviews }, { data: payments }, { data: salesRows }] = await Promise.all([
     supabase.from("application_documents").select("*").eq("application_id", app.id).order("doc_type"),
     supabase.from("reviews").select("*").eq("application_id", app.id),
     supabase.from("payments").select("*").eq("application_id", app.id).order("created_at", { ascending: false }),
+    supabase.from("sales_reports").select("event_date, gross_sales_cents").eq("application_id", app.id),
   ])
+  const salesByDate = new Map((salesRows ?? []).map((r) => [r.event_date as string, r.gross_sales_cents as number]))
   // Is the organizer set up for card payments? (Checked with full access; only a yes/no is used.)
   let stripeReady = false
   if (market.payment_method === "stripe" && market.organizer_id && process.env.STRIPE_SECRET_KEY) {
@@ -81,6 +84,9 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
         </p>
       )}
       {reviewed && <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Thanks! Your review is live.</p>}
+      {typeof reported === "string" && (
+        <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Sales report sent. Thanks!</p>
+      )}
       {payment === "success" && <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Payment received! We emailed your receipt.</p>}
       {payment === "processing" && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">Your payment is processing. We&apos;ll update this page when Stripe confirms it.</p>}
       {payment === "cancelled" && <p className="rounded-lg bg-muted p-3 text-sm">Payment cancelled. Nothing was charged.</p>}
@@ -199,6 +205,36 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
                   {documentTypeLabel(d.doc_type)}
                   {d.expiration_date && <span className="text-muted-foreground">· valid until {formatDate(d.expiration_date)}</span>}
                 </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {pastDates.length > 0 && ["accepted", "paid"].includes(app.status) && (
+        <section className="space-y-3 rounded-xl border bg-background p-4">
+          <div>
+            <h2 className="font-semibold">Sales reports</h2>
+            <p className="text-sm text-muted-foreground">
+              {market.sales_reporting === "required"
+                ? "This market asks every vendor to report sales."
+                : "Track how each day went. Only you and the market see it."}
+            </p>
+          </div>
+          <ul className="space-y-2">
+            {pastDates.map((d) => (
+              <li key={d} className="flex items-center justify-between gap-2 text-sm">
+                <span>{formatDate(d, { weekday: true })}</span>
+                {salesByDate.has(d) ? (
+                  <Link href={`/applications/${app.id}/sales?date=${d}`} className="flex items-center gap-2">
+                    <span className="font-semibold">{formatMoney(salesByDate.get(d)!)}</span>
+                    <span className="font-medium text-primary">Edit</span>
+                  </Link>
+                ) : (
+                  <Link href={`/applications/${app.id}/sales?date=${d}`} className={buttonVariants({ size: "sm" })}>
+                    Report sales
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

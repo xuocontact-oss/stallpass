@@ -20,3 +20,11 @@ export function platformFee(amountCents: number, percent: number, flatCents: num
   const fee = Math.round((amountCents * percent) / 100) + flatCents
   return Math.max(0, Math.min(fee, amountCents))
 }
+
+/** "$1,234.50" / "1234.5" / "" → cents (null if blank or not a number). */
+export function parseDollars(input: string | null | undefined): number | null {
+  const s = (input ?? "").replace(/[$,\s]/g, "")
+  if (!s) return null
+  if (!/^\d+(\.\d{1,2})?$/.test(s)) return NaN
+  return Math.round(Number.parseFloat(s) * 100)
+}

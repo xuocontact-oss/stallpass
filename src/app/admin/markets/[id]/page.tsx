@@ -5,6 +5,7 @@ import { MarketForm } from "@/components/admin/market-form"
 import { ActionButton } from "@/components/action-button"
 import { ConfirmButton } from "@/components/confirm-button"
 import { PaymentSettingsForm } from "@/components/payment-settings-form"
+import { SalesSettingsForm } from "@/components/sales-settings-form"
 import { PromptButton } from "@/components/prompt-button"
 import { reviewMarket } from "@/actions/admin-moderation"
 import { MarketDatesEditor, MarketPhotosEditor } from "@/components/market-content-editor"
@@ -70,6 +71,7 @@ export default async function EditMarketPage({ params, searchParams }: PageProps
       <MarketPhotosEditor marketId={m.id} photos={(photos as MarketPhoto[] | null) ?? []} />
 
       <PaymentSettingsForm market={m} stripeReady={false} showStripe={false} />
+      <SalesSettingsForm market={m} />
       <MarketForm market={m} contact={contact} />
 
       <ConfirmButton

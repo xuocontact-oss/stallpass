@@ -253,6 +253,12 @@ export default async function MarketPage({ params, searchParams }: PageProps<"/m
             {deadlineDays != null && deadlineDays < 0 && <span className="text-destructive"> (passed)</span>}
           </p>
         )}
+        {market.sales_reporting === "required" && (
+          <p className="mt-2 text-sm">
+            <span className="font-medium">Sales reports:</span> vendors report their sales after each market day
+            {market.sales_fee_percent ? ` (the market charges ${market.sales_fee_percent}% of sales)` : ""}.
+          </p>
+        )}
         {market.application_notes && (
           <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{market.application_notes}</p>
         )}

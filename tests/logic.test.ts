@@ -90,7 +90,7 @@ function market(id: string, extra: Partial<Market> = {}): Market {
     is_claimed: false, website: null, instagram: null, address: "x", city: "Los Angeles", state: "CA",
     zip: null, lat: 34.05, lng: -118.25, description: null, schedule_summary: null, booth_fees: [],
     min_booth_fee_cents: null, categories_wanted: [], required_doc_types: [], application_deadline: null,
-    application_notes: null, is_published: true, is_sample: false, approval_status: "approved", rejection_reason: null, source: "stallpass", source_id: null, payment_method: "none", payment_link: null, payment_instructions: null,
+    application_notes: null, is_published: true, is_sample: false, approval_status: "approved", rejection_reason: null, source: "stallpass", source_id: null, sales_reporting: "off", sales_report_due_days: 3, sales_fee_percent: null, payment_method: "none", payment_link: null, payment_instructions: null,
     created_by: null, approved_at: null, created_at: "", updated_at: "", ...extra,
   }
 }
@@ -234,4 +234,26 @@ test("vendor setup progress", async () => {
   p = vendorSetupProgress(goods, ["liability_insurance", "business_license", "sellers_permit"].map((doc_type) => ({ doc_type })))
   assert.equal(p.complete, true) // non-food sellers don't need a health permit
   assert.equal(vendorSetupProgress(null, []).nextStep, 1)
+})
+
+test("local day ranges for sales", async () => {
+  const { zonedDayRange, stateTimeZone } = await import("../src/lib/timezones.ts")
+  // LA in October is UTC-7: the day runs 07:00Z to 07:00Z next day
+  assert.deepEqual(zonedDayRange("2026-10-04", "America/Los_Angeles"), { start: "2026-10-04T07:00:00.000Z", end: "2026-10-05T07:00:00.000Z" })
+  // LA in January is UTC-8
+  assert.equal(zonedDayRange("2027-01-10", "America/Los_Angeles").start, "2027-01-10T08:00:00.000Z")
+  // Daylight saving ends Nov 1 2026: that day is 25 hours long in LA
+  const r = zonedDayRange("2026-11-01", "America/Los_Angeles")
+  assert.equal((Date.parse(r.end) - Date.parse(r.start)) / 3_600_000, 25)
+  assert.equal(stateTimeZone("ny"), "America/New_York")
+  assert.equal(stateTimeZone("AZ"), "America/Phoenix")
+})
+
+test("dollar amounts", async () => {
+  const { parseDollars } = await import("../src/lib/fees.ts")
+  assert.equal(parseDollars("$1,234.50"), 123450)
+  assert.equal(parseDollars("800"), 80000)
+  assert.equal(parseDollars(""), null)
+  assert.ok(Number.isNaN(parseDollars("12.345")))
+  assert.ok(Number.isNaN(parseDollars("abc")))
 })

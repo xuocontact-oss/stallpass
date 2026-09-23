@@ -10,6 +10,7 @@ export function OrganizerTabs({ marketId, newCount }: { marketId: string; newCou
   const tabs = [
     { href: base, label: "Overview", exact: true },
     { href: `${base}/applications`, label: newCount ? `Applications (${newCount})` : "Applications" },
+    { href: `${base}/sales`, label: "Sales" },
     { href: `${base}/reviews`, label: "Reviews" },
     { href: `${base}/edit`, label: "Edit market" },
   ]

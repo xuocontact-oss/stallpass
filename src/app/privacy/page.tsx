@@ -19,6 +19,7 @@ export default function PrivacyPage() {
         <li><strong>Business details:</strong> business name, what you sell, description, menu or product list, photos, social links and setup needs.</li>
         <li><strong>Documents you upload:</strong> permits, licenses, insurance certificates and similar files, with the dates you enter.</li>
         <li><strong>Activity:</strong> markets you apply to, application status, messages from organizers, reviews you write, and payment records.</li>
+        <li><strong>Sales reports:</strong> the sales totals you report for market days. If you connect Square, we read your payment totals (read-only) to fill these in. We can&apos;t move money or see card numbers.</li>
         <li><strong>Location:</strong> a home ZIP code if you give one. If you tap &ldquo;near me&rdquo;, your browser shares your approximate location for that search only; we don&apos;t store it.</li>
         <li><strong>Partner clicks:</strong> when you click a partner link or copy a promo code, we record that it happened (and your account, if you&apos;re signed in) so we can be paid by the partner.</li>
         <li><strong>Technical data:</strong> the cookies needed to keep you signed in, and basic logs (such as IP address and browser) used for security and fixing problems. We don&apos;t use advertising trackers.</li>
@@ -38,14 +39,15 @@ export default function PrivacyPage() {
           <strong>Markets you apply to</strong> receive your business profile, contact details and the documents you choose to
           attach. Markets not yet on {SITE_NAME} get this by email, with a secure link that expires after 14 days.
         </li>
+        <li><strong>A market&apos;s organizer</strong> sees the sales reports you submit for their market. We may use sales figures combined and anonymized across many vendors (never your individual numbers) to show typical sales ranges and to improve {SITE_NAME}.</li>
         <li>
           <strong>The public</strong> sees reviews. Vendor reviews are shown as &ldquo;Verified vendor&rdquo; with no name;
           shopper reviews show your first name and last initial.
         </li>
         <li>
           <strong>Service providers</strong> who run parts of {SITE_NAME} for us: Supabase (database and file storage),
-          Netlify (hosting), Stripe (card payments), our email provider, Cloudflare (bot protection) and OpenStreetMap (map
-          images). They may only use your information to provide their service.
+          Netlify (hosting), Stripe (card payments), Square (only if you connect it), our email provider, Cloudflare (bot
+          protection) and OpenStreetMap (map images). They may only use your information to provide their service.
         </li>
         <li><strong>When the law requires it</strong>, or to protect people&apos;s safety or rights.</li>
       </ul>

@@ -5,7 +5,7 @@ import { MarketCard } from "@/components/market-card"
 import { buttonVariants } from "@/components/ui/button"
 import { requireVendor } from "@/lib/auth"
 import { commonDocTypes, DOCUMENT_TYPES, documentTypeLabel } from "@/lib/constants"
-import { daysBetween, formatDate, relativeDays, todayISO } from "@/lib/dates"
+import { addDays, daysBetween, formatDate, relativeDays, todayISO } from "@/lib/dates"
 import { compareByUrgency, documentStatus, summarizeDocuments } from "@/lib/documents"
 import { getDirectory } from "@/lib/market-data"
 import { filterMarkets, parseFilters } from "@/lib/markets"
@@ -23,9 +23,19 @@ export default async function DashboardPage() {
   const [docs, directory, { data: apps }] = await Promise.all([
     getMyDocuments(vendor.id),
     getDirectory(today, { curatedOnly: true }),
-    supabase.from("applications").select("status, event_dates").eq("vendor_id", vendor.id),
+    supabase.from("applications").select("id, status, event_dates, markets(name, sales_reporting)").eq("vendor_id", vendor.id),
   ])
-  const upcomingApps = (apps ?? []).filter(
+  const { data: myReports } = await supabase.from("sales_reports").select("application_id, event_date").eq("vendor_id", vendor.id)
+  const reportedKeys = new Set((myReports ?? []).map((r) => `${r.application_id}:${r.event_date}`))
+  const salesToReport = ((apps ?? []) as unknown as { id: string; status: string; event_dates: string[]; markets: { name: string; sales_reporting: string } | null }[])
+    .filter((a) => ["accepted", "paid"].includes(a.status) && a.markets && a.markets.sales_reporting !== "off")
+    .flatMap((a) =>
+      a.event_dates
+        .filter((d) => d <= today && d >= addDays(today, -30) && !reportedKeys.has(`${a.id}:${d}`))
+        .map((d) => ({ appId: a.id, date: d, market: a.markets!.name, required: a.markets!.sales_reporting === "required" }))
+    )
+    .sort((x, y) => y.date.localeCompare(x.date))
+  const upcomingApps = ((apps ?? []) as unknown as { status: string; event_dates: string[] }[]).filter(
     (a) => a.status !== "cancelled" && (a.event_dates as string[]).some((d) => d >= today)
   )
   const appCounts = {
@@ -142,6 +152,25 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
+
+      {salesToReport.length > 0 && (
+        <section className="space-y-2 rounded-xl border-2 border-amber-300 bg-background p-4">
+          <h2 className="font-semibold">Report your sales</h2>
+          <ul className="space-y-2">
+            {salesToReport.slice(0, 5).map((r) => (
+              <li key={`${r.appId}${r.date}`}>
+                <Link href={`/applications/${r.appId}/sales?date=${r.date}`} className="flex items-center justify-between gap-2 text-sm">
+                  <span>
+                    {r.market} · {formatDate(r.date, { weekday: true })}
+                    {r.required && <span className="ml-1 text-xs text-amber-700">(required)</span>}
+                  </span>
+                  <span className="font-medium text-primary">Report →</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {upcomingApps.length > 0 && (
         <section className="rounded-xl border bg-background p-4">

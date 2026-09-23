@@ -8,6 +8,7 @@ import { isAdmin } from "@/lib/auth"
 import { formText, friendlyDbError, type ActionState } from "@/lib/form"
 import { parseMarketForm } from "@/lib/market-form"
 import { runDocumentReminders } from "@/lib/reminders"
+import { runSalesReminders } from "@/lib/sales-reminders"
 import { runSetupNudges } from "@/lib/setup-nudges"
 import { createClient } from "@/lib/supabase/server"
 
@@ -68,6 +69,7 @@ export async function runRemindersNow(): Promise<ActionState> {
   if (!(await isAdmin())) return NOT_ADMIN
   try {
     const r = await runDocumentReminders()
+    const sales = await runSalesReminders(150)
     const nudges = await runSetupNudges()
     await logAdminAction("run_reminders", "system", null, { sent: r.emailsSent })
     const parts = [
@@ -75,6 +77,7 @@ export async function runRemindersNow(): Promise<ActionState> {
       `Emails sent: ${r.emailsSent}.`,
       r.emailsSkipped ? `Not sent (email not set up): ${r.emailsSkipped}.` : "",
       r.emailsFailed ? `Failed: ${r.emailsFailed}.` : "",
+      `Sales report reminders sent: ${sales.sent}.`,
       `"Finish setting up" reminders sent: ${nudges.sent}.`,
     ]
     return { success: parts.filter(Boolean).join(" ") }

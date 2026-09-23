@@ -75,6 +75,9 @@ export type Market = {
   approval_status: "pending" | "approved" | "rejected"
   source: "stallpass" | "usda"
   source_id: string | null
+  sales_reporting: "off" | "optional" | "required"
+  sales_report_due_days: number
+  sales_fee_percent: number | null
   payment_method: "none" | "stripe" | "external_link"
   payment_link: string | null
   payment_instructions: string | null
