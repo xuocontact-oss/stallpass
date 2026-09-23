@@ -3,7 +3,7 @@ import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site"
 
 export function SiteFooter() {
   return (
-    <footer className="mt-10 border-t bg-background">
+    <footer className="mt-10 border-t bg-background print:hidden">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-6 text-sm text-muted-foreground">
         <span>© {new Date().getFullYear()} {SITE_NAME}</span>
         <Link href="/start" className="hover:text-foreground">Start guide</Link>

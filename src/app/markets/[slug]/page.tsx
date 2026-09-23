@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { CalendarDays, ExternalLink, FileCheck2, MapPin } from "lucide-react"
+import { CalendarDays, ExternalLink, FileCheck2, MapPin, Users } from "lucide-react"
 import { ApplicationStatusBadge } from "@/components/application-status-badge"
 import { ReadinessList } from "@/components/readiness-list"
 import { ReviewList, ReviewSummaryBox, ShopperReviewList } from "@/components/review-list"
@@ -10,7 +10,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { categoryLabel, documentTypeLabel, marketTypeLabel } from "@/lib/constants"
 import { getMyVendor, getUser } from "@/lib/auth"
 import { daysBetween, formatDate, formatTime, todayISO } from "@/lib/dates"
-import { getMarketBySlug } from "@/lib/market-data"
+import { getMarketBySlug, MIN_VENDOR_COUNT_SHOWN, vendorCountFor } from "@/lib/market-data"
 import { formatMoney } from "@/lib/markets"
 import { getPartnerOffers } from "@/lib/partners"
 import { checkReadiness } from "@/lib/readiness"
@@ -47,6 +47,7 @@ export default async function MarketPage({ params, searchParams }: PageProps<"/m
   const data = await getMarketBySlug(slug, today)
   if (!data) notFound()
   const { market, dates, photos, reviews, shopperReviews } = data
+  const vendorCount = await vendorCountFor(market.id)
   const summary = summarizeReviews(reviews)
   const shopperAvg = shopperReviews.length
     ? Math.round((shopperReviews.reduce((s, r) => s + r.rating_overall, 0) / shopperReviews.length) * 10) / 10
@@ -111,6 +112,11 @@ export default async function MarketPage({ params, searchParams }: PageProps<"/m
           </a>
         )}
         {market.schedule_summary && <p className="mt-2 font-medium">{market.schedule_summary}</p>}
+        {vendorCount >= MIN_VENDOR_COUNT_SHOWN && (
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-sm font-medium">
+            <Users className="size-4 text-primary" aria-hidden /> {vendorCount} vendors here use Stallpass
+          </p>
+        )}
       </div>
 
       <section className="rounded-xl border-2 border-primary/30 bg-background p-4">

@@ -12,7 +12,7 @@ export async function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-[1000] border-b bg-background/95 backdrop-blur">
+      <header className="sticky top-0 z-[1000] border-b bg-background/95 backdrop-blur print:hidden">
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
           <Link
             href={vendor ? "/dashboard" : profile?.is_organizer ? "/organizer" : profile?.is_shopper ? "/markets" : "/"}

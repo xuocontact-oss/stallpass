@@ -41,7 +41,10 @@ Without this, only you can receive sign-in links. Free option: a Gmail account.
    - Sender email: your Gmail address · Sender name: `Stallpass`
    - Host: `smtp.gmail.com` · Port: `465`
    - Username: your Gmail address · Password: the app password
-5. **App emails** (reminders, applications, receipts) use the same Gmail. Its settings go into Netlify in step 4.
+5. **Sign-in email with a 6-digit code**: live Supabase → **Authentication → Emails → Templates**. For **both "Magic Link" and "Confirm signup"**:
+   - Subject: `Your Stallpass sign-in code`
+   - Body: paste everything from `supabase/email-templates/sign-in.html` (run `pbcopy < supabase/email-templates/sign-in.html` to copy it) → **Save**.
+6. **App emails** (reminders, applications, receipts) use the same Gmail. Its settings go into Netlify in step 4.
 
 Gmail sends up to about 500 emails a day. When you buy your own domain later, switch to Resend (see "Later" below).
 

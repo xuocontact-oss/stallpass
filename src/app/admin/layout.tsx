@@ -6,10 +6,11 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   await requireAdmin()
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6">
-      <nav className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium">
+      <nav className="mb-5 flex flex-wrap print:hidden items-center gap-x-4 gap-y-2 text-sm font-medium">
         <span className="rounded bg-foreground px-2 py-0.5 text-xs text-background">ADMIN</span>
         <Link href="/admin" className="hover:text-primary">Overview</Link>
         <Link href="/admin/approvals" className="hover:text-primary">Approvals</Link>
+        <Link href="/admin/outreach" className="hover:text-primary">Outreach</Link>
         <Link href="/admin/accounts" className="hover:text-primary">Accounts</Link>
         <Link href="/admin/vendors" className="hover:text-primary">Vendors</Link>
         <Link href="/admin/documents" className="hover:text-primary">Documents</Link>

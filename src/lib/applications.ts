@@ -117,6 +117,7 @@ export async function deliverApplication(applicationId: string): Promise<Deliver
     .eq("application_id", applicationId)
 
   const owner = (vendor as unknown as { profiles: { email: string; full_name: string | null } }).profiles
+  const { data: vc } = await db.from("market_vendor_counts").select("vendor_count").eq("market_id", application.market_id).maybeSingle()
   const email = buildApplicationEmail({
     market: market as Market,
     contactName: contact.contact_name,
@@ -128,6 +129,7 @@ export async function deliverApplication(applicationId: string): Promise<Deliver
     shareUrl: siteUrl(`/a/${token}`),
     claimUrl: siteUrl(`/claim/${(market as Market).slug}`),
     linkDays: SHARE_LINK_DAYS,
+    vendorCount: vc?.vendor_count ?? 0,
   })
   const sent = await sendEmail({ to: contact.contact_email, replyTo: owner.email, ...email })
   if (sent.ok) {

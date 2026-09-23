@@ -1,4 +1,5 @@
 import { ActionForm, SubmitButton } from "@/components/action-form"
+import { MyMarketsPicker } from "@/components/my-markets-picker"
 import { PhotoManager } from "@/components/photo-manager"
 import { SampleBadge } from "@/components/sample-badge"
 import { VendorBasicFields, VendorDetailFields } from "@/components/vendor-fields"
@@ -6,6 +7,7 @@ import { addVendorPhoto, removeVendorPhoto, updateVendor } from "@/actions/vendo
 import { requireVendor } from "@/lib/auth"
 import { MAX_VENDOR_PHOTOS } from "@/lib/constants"
 import { publicPhotoUrl } from "@/lib/storage"
+import { createClient } from "@/lib/supabase/server"
 import { getMyPhotos } from "@/lib/vendor-data"
 
 export const metadata = { title: "Business profile" }
@@ -13,6 +15,11 @@ export const metadata = { title: "Business profile" }
 export default async function ProfilePage() {
   const { vendor } = await requireVendor()
   const photos = await getMyPhotos(vendor.id)
+  const supabase = await createClient()
+  const { data: mine } = await supabase.from("vendor_markets").select("markets(id, name, city, state)").eq("vendor_id", vendor.id)
+  const sellsAt = ((mine ?? []) as unknown as { markets: { id: string; name: string; city: string; state: string } | null }[])
+    .map((r) => r.markets)
+    .filter((m): m is { id: string; name: string; city: string; state: string } => m !== null)
 
   return (
     <main className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6">
@@ -40,6 +47,14 @@ export default async function ProfilePage() {
           onAdd={addVendorPhoto}
           onRemove={removeVendorPhoto}
         />
+      </section>
+
+      <section className="space-y-3 rounded-xl border bg-background p-4">
+        <div>
+          <h2 className="font-semibold">Markets you sell at</h2>
+          <p className="text-sm text-muted-foreground">Organizers only see how many vendors listed their market, never who.</p>
+        </div>
+        <MyMarketsPicker selected={sellsAt} />
       </section>
 
       <ActionForm action={updateVendor} className="space-y-5 rounded-xl border bg-background p-4">

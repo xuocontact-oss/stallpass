@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { submitClaim } from "@/actions/organizer"
 import { getUser } from "@/lib/auth"
 import { todayISO } from "@/lib/dates"
-import { getMarketBySlug } from "@/lib/market-data"
+import { getMarketBySlug, MIN_VENDOR_COUNT_SHOWN, vendorCountFor } from "@/lib/market-data"
 import { createClient } from "@/lib/supabase/server"
 
 export const metadata = { title: "Claim your market" }
@@ -28,6 +28,7 @@ export default async function ClaimPage({ params }: PageProps<"/claim/[slug]">) 
   if (!data) notFound()
   const { market } = data
   const user = await getUser()
+  const vendorCount = await vendorCountFor(market.id)
 
   let existing: { status: string } | null = null
   if (user) {
@@ -48,7 +49,11 @@ export default async function ClaimPage({ params }: PageProps<"/claim/[slug]">) 
       <div>
         <p className="text-sm font-medium text-primary">For market organizers</p>
         <h1 className="text-3xl font-bold">Claim {market.name}</h1>
-        <p className="mt-2 text-muted-foreground">Free. Vendors are already applying to your market here.</p>
+        <p className="mt-2 text-muted-foreground">
+          {vendorCount >= MIN_VENDOR_COUNT_SHOWN
+            ? `Free. ${vendorCount} vendors who sell at ${market.name} already use Stallpass.`
+            : "Free. Vendors are already applying to your market here."}
+        </p>
       </div>
       <ul className="space-y-2">
         {BENEFITS.map((b) => (

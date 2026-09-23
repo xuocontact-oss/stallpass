@@ -189,10 +189,18 @@ export async function saveVendorBasics(_prev: ActionState, formData: FormData): 
   if (pError) return { error: friendlyDbError(pError) }
 
   const existing = await getMyVendor()
-  const { error } = existing
-    ? await supabase.from("vendors").update(business).eq("id", existing.id)
-    : await supabase.from("vendors").insert({ ...business, owner_id: user.id })
+  const { data: saved, error } = existing
+    ? await supabase.from("vendors").update(business).eq("id", existing.id).select("id").single()
+    : await supabase.from("vendors").insert({ ...business, owner_id: user.id }).select("id").single()
   if (error) return { error: friendlyDbError(error) }
+
+  // Signed up from a market's QR code? Add that market to "markets I sell at".
+  const marketId = formText(formData, "m")
+  if (marketId && z.uuid().safeParse(marketId).success) {
+    await supabase
+      .from("vendor_markets")
+      .upsert({ vendor_id: saved.id, market_id: marketId }, { onConflict: "vendor_id,market_id", ignoreDuplicates: true })
+  }
 
   revalidatePath("/", "layout")
   redirect("/onboarding?step=2")
@@ -229,4 +237,50 @@ export async function saveVendorDetails(_prev: ActionState, formData: FormData):
   if (error) return { error: friendlyDbError(error) }
   revalidatePath("/", "layout")
   redirect("/onboarding?step=3")
+}
+
+// ---------------------------------------------------------------------------
+// "Markets I sell at"
+// ---------------------------------------------------------------------------
+
+export async function addMyMarket(marketId: string): Promise<ActionState> {
+  const vendor = await getMyVendor()
+  if (!vendor) return { error: "Set up your business first." }
+  if (!z.uuid().safeParse(marketId).success) return { error: "Market not found." }
+  const supabase = await createClient()
+  const { error } = await supabase.from("vendor_markets").upsert(
+    { vendor_id: vendor.id, market_id: marketId },
+    { onConflict: "vendor_id,market_id", ignoreDuplicates: true }
+  )
+  if (error) return { error: friendlyDbError(error) }
+  revalidatePath("/profile")
+  revalidatePath("/onboarding")
+  return { success: "Added." }
+}
+
+export async function removeMyMarket(marketId: string): Promise<ActionState> {
+  const vendor = await getMyVendor()
+  if (!vendor || !z.uuid().safeParse(marketId).success) return { error: "Market not found." }
+  const supabase = await createClient()
+  const { error } = await supabase.from("vendor_markets").delete().eq("vendor_id", vendor.id).eq("market_id", marketId)
+  if (error) return { error: friendlyDbError(error) }
+  revalidatePath("/profile")
+  revalidatePath("/onboarding")
+  return { success: "Removed." }
+}
+
+/** Search box for "markets I sell at": name or city, published markets only. */
+export async function searchMarketsForPicker(query: string): Promise<{ id: string; name: string; city: string; state: string }[]> {
+  const term = String(query ?? "").trim().slice(0, 60).replace(/[%,()*\\]/g, " ").trim()
+  if (term.length < 2) return []
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("markets")
+    .select("id, name, city, state")
+    .eq("is_published", true)
+    .eq("approval_status", "approved")
+    .or(`name.ilike.%${term}%,city.ilike.%${term}%`)
+    .order("name")
+    .limit(8)
+  return data ?? []
 }

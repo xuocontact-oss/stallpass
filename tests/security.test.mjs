@@ -472,6 +472,20 @@ await expect("Admin unsuspends", async () => { await q(`select public.admin_set_
 await as(O)
 await expect("Unsuspended organizer is back in control", async () => { await q(`select public.organizer_set_booth($1,'Z9')`, [appB]) }, true)
 
+// --- Outreach -----------------------------------------------------------------
+await as(A)
+await expect("Vendor lists a market they sell at", async () => { await q(`insert into public.vendor_markets(vendor_id,market_id) values($1,$2)`, [vA, m1.id]) }, true)
+await expect("Can't list a market for someone else's business", async () => { await q(`insert into public.vendor_markets(vendor_id,market_id) values($1,$2)`, [vB, m1.id]) }, false)
+await expect("Can't set your own sign-up source", async () => { await q(`update public.profiles set signup_ref='cheat' where id=$1`, [A]) }, false)
+await as(B)
+await q(`insert into public.vendor_markets(vendor_id,market_id) values($1,$2)`, [vB, m1.id])
+await expect("Vendors can't see who else sells at a market", async () => (await rows(`select * from public.vendor_markets where market_id=$1`, [m1.id])).length === 1, true)
+await asAnon()
+await expect("Public sees only the count", async () => (await rows(`select vendor_count from public.market_vendor_counts where market_id=$1`, [m1.id]))[0].vendor_count === 2, true)
+await expect("Public can't read the vendor list", async () => { await q(`select * from public.vendor_markets`) }, false)
+await as(O)
+await expect("Organizers can't see which vendors listed them", async () => (await rows(`select * from public.vendor_markets`)).length > 0, false)
+
 // --- Suspended admin loses powers -----------------------------------------
 await db.exec(`reset role; set request.jwt.claim.sub=''`)
 await q(`update public.profiles set suspended_at=now() where id=$1`, [ADMIN])

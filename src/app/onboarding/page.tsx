@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { MyMarketsPicker } from "@/components/my-markets-picker"
 import { VendorBasicFields } from "@/components/vendor-fields"
 import { addVendorPhoto, removeVendorPhoto, saveVendorBasics, saveVendorDetails } from "@/actions/vendor"
 import { getMyVendor, getProfile, requireUser } from "@/lib/auth"
@@ -17,6 +18,7 @@ import { todayISO } from "@/lib/dates"
 import { documentStatus } from "@/lib/documents"
 import { vendorSetupProgress } from "@/lib/setup-progress"
 import { publicPhotoUrl } from "@/lib/storage"
+import { createClient } from "@/lib/supabase/server"
 import { getMyDocuments, getMyPhotos } from "@/lib/vendor-data"
 import { cn } from "@/lib/utils"
 
@@ -55,6 +57,7 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
   const profile = await getProfile()
   const vendor = await getMyVendor()
   const requested = Number(params.step)
+  const joinMarket = typeof params.m === "string" && /^[0-9a-f-]{36}$/i.test(params.m) ? params.m : null
 
   // Step 0: vendor or organizer?
   if (!vendor && !requested) {
@@ -94,7 +97,23 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
     )
   }
 
-  const [docs, photos] = vendor ? await Promise.all([getMyDocuments(vendor.id), getMyPhotos(vendor.id)]) : [[], []]
+  const supabase = await createClient()
+  // Came back through a market's QR code with a business already? Add that market.
+  if (vendor && joinMarket) {
+    await supabase
+      .from("vendor_markets")
+      .upsert({ vendor_id: vendor.id, market_id: joinMarket }, { onConflict: "vendor_id,market_id", ignoreDuplicates: true })
+  }
+  const [docs, photos, myMarkets] = vendor
+    ? await Promise.all([
+        getMyDocuments(vendor.id),
+        getMyPhotos(vendor.id),
+        supabase.from("vendor_markets").select("markets(id, name, city, state)").eq("vendor_id", vendor.id).then((r) => r.data ?? []),
+      ])
+    : [[], [], []]
+  const sellsAt = (myMarkets as unknown as { markets: { id: string; name: string; city: string; state: string } | null }[])
+    .map((r) => r.markets)
+    .filter((m): m is { id: string; name: string; city: string; state: string } => m !== null)
   const progress = vendorSetupProgress(vendor, docs)
   // Bare /onboarding with a business already: continue where they left off.
   if (vendor && !requested) redirect(`/onboarding?step=${progress.nextStep}`)
@@ -116,6 +135,7 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
             </p>
           </div>
           <ActionForm action={saveVendorBasics} className="space-y-5 rounded-xl border bg-background p-4">
+            {joinMarket && <input type="hidden" name="m" value={joinMarket} />}
             <fieldset className="space-y-4">
               <legend className="mb-2 font-semibold">About you (the owner)</legend>
               <div className="space-y-1.5">
@@ -141,6 +161,11 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
               Save and continue
             </SubmitButton>
           </ActionForm>
+          {!vendor && (
+            <p className="text-center text-sm">
+              <Link href="/onboarding/later" className="text-muted-foreground">Busy right now? Finish later</Link>
+            </p>
+          )}
         </>
       )}
 
@@ -165,6 +190,13 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
               onAdd={addVendorPhoto}
               onRemove={removeVendorPhoto}
             />
+          </section>
+          <section className="space-y-3 rounded-xl border bg-background p-4">
+            <div>
+              <h2 className="font-semibold">Markets you already sell at</h2>
+              <p className="text-sm text-muted-foreground">Helps us get your markets on Stallpass. Other vendors and organizers only ever see a count, never your name.</p>
+            </div>
+            <MyMarketsPicker selected={sellsAt} />
           </section>
           <ActionForm action={saveVendorDetails} className="space-y-5 rounded-xl border bg-background p-4">
             <div className="space-y-1.5">

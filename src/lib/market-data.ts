@@ -131,3 +131,13 @@ export async function getMarketBySlug(slug: string, today: string) {
     shopperReviews: (shopperReviews.data ?? []) as ShopperReview[],
   }
 }
+
+/** How many Stallpass vendors say they sell at a market (0 if none). */
+export async function vendorCountFor(marketId: string): Promise<number> {
+  const supabase = await createClient()
+  const { data } = await supabase.from("market_vendor_counts").select("vendor_count").eq("market_id", marketId).maybeSingle()
+  return data?.vendor_count ?? 0
+}
+
+/** Counts are only shown once there are a few, so no one can be singled out. */
+export const MIN_VENDOR_COUNT_SHOWN = 3
