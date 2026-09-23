@@ -126,6 +126,15 @@ Live Supabase → **Authentication → URL Configuration**:
 
 ---
 
+## Running on the free plans
+
+Stallpass is tuned to stretch the free tiers:
+
+- **Photos shrink on the phone before upload** (≈300 KB instead of 3–5 MB; permit photos stay readable). PDFs are stored as-is.
+- **Each document version is stored once**, however many applications it's sent with.
+- **The daily reminder job keeps Supabase awake** (free projects pause after 7 days with no activity) and never sends more than 200 emails in a run, so Gmail's ~500/day limit always leaves room for sign-in codes. Change it with the `MAX_DAILY_JOB_EMAILS` Netlify variable.
+- **Watch these** (Supabase → Project → Usage): file storage (1 GB free), database (500 MB), data transfer (5 GB/month). Upgrade to Pro ($25/mo) when storage passes ~70%, or as soon as you want daily backups.
+
 ## Later
 
 - **Your own domain** (~$12/yr): buy it, then Netlify → **Domain management → Add a domain**. Update `NEXT_PUBLIC_SITE_URL` and the Supabase URLs. For better email, verify the domain in **Resend** and use Resend's SMTP details in both places instead of Gmail.

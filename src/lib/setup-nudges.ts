@@ -9,7 +9,7 @@ import type { Vendor } from "@/lib/types"
  * at a market booth) but doesn't finish. Never sent twice. Runs with the
  * daily reminder job.
  */
-export async function runSetupNudges(): Promise<{ sent: number; skipped: number }> {
+export async function runSetupNudges(budget = 100): Promise<{ sent: number; skipped: number }> {
   const db = createAdminClient()
   const now = Date.now()
   const { data: people } = await db
@@ -31,6 +31,7 @@ export async function runSetupNudges(): Promise<{ sent: number; skipped: number 
     is_organizer: boolean
     vendors: Vendor | null
   }[]) {
+    if (sent >= budget) break // the rest get their reminder on the next run
     if (!p.email || p.email.endsWith("@example.com")) continue
     const vendor = p.vendors
     let needsNudge = false

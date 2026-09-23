@@ -35,7 +35,7 @@ export function PhotoManager({
     if (files.length === 0) return
     startTransition(async () => {
       for (const file of files) {
-        const up = await uploadFile(bucket, folder, file, MAX_PHOTO_BYTES)
+        const up = await uploadFile(bucket, folder, file, MAX_PHOTO_BYTES, "photo")
         if ("error" in up) {
           toast.error(up.error)
           continue
@@ -62,7 +62,7 @@ export function PhotoManager({
       {photos.map((p) => (
         <div key={p.id} className="relative aspect-square overflow-hidden rounded-lg bg-muted">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={p.url} alt="" className="size-full object-cover" />
+          <img loading="lazy" decoding="async" src={p.url} alt="" className="size-full object-cover" />
           <button
             type="button"
             onClick={() => remove(p.id)}

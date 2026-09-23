@@ -65,7 +65,7 @@ export default async function OrganizerApplicationPage({ params }: PageProps<"/o
         <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4">
           {photos!.map((p) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={p.id} src={publicPhotoUrl("vendor-photos", p.path)} alt="" className="h-40 w-[60%] shrink-0 snap-start rounded-xl object-cover sm:w-[35%]" />
+            <img loading="lazy" decoding="async" key={p.id} src={publicPhotoUrl("vendor-photos", p.path)} alt="" className="h-40 w-[60%] shrink-0 snap-start rounded-xl object-cover sm:w-[35%]" />
           ))}
         </div>
       )}

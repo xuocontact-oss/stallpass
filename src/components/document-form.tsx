@@ -48,7 +48,7 @@ export function DocumentForm({
       }
       let uploaded: { path: string; name: string } | null = null
       if (file) {
-        const up = await uploadFile("vendor-documents", vendorId, file, MAX_DOCUMENT_BYTES)
+        const up = await uploadFile("vendor-documents", vendorId, file, MAX_DOCUMENT_BYTES, "document")
         if ("error" in up) {
           setError(up.error)
           return

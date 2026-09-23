@@ -87,7 +87,7 @@ export default async function MarketPage({ params, searchParams }: PageProps<"/m
         <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           {photos.map((p) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <img loading="lazy" decoding="async"
               key={p.id}
               src={publicPhotoUrl("market-photos", p.path)}
               alt=""

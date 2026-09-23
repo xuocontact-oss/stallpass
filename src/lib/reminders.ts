@@ -5,6 +5,13 @@ import { addDays, daysBetween, formatDate, relativeDays, todayISO } from "@/lib/
 import { reminderKindFor } from "@/lib/documents"
 import { emailLayout, escapeHtml, sendEmail, siteUrl } from "@/lib/email"
 
+/**
+ * Most emails the daily job sends in one run. Gmail allows about 500 a day,
+ * and sign-in codes use the same account, so this leaves plenty of room.
+ * Anything over the limit goes out on the next day's run.
+ */
+export const MAX_EMAILS_PER_RUN = Number(process.env.MAX_DAILY_JOB_EMAILS || 200)
+
 export type ReminderRunResult = {
   documentsChecked: number
   emailsSent: number
@@ -69,6 +76,10 @@ export async function runDocumentReminders(): Promise<ReminderRunResult> {
   }
 
   for (const [email, group] of byEmail) {
+    if (result.emailsSent >= MAX_EMAILS_PER_RUN) {
+      result.log.push(`Stopped at ${MAX_EMAILS_PER_RUN} emails; the rest go out tomorrow.`)
+      break
+    }
     // Claim the reminders first. Ones already sent come back empty, which also
     // stops two runs at the same moment from double-sending.
     const { data: claimed, error: claimError } = await db

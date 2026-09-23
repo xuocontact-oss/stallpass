@@ -48,7 +48,7 @@ export function MenuEditor({
     if (!file) return
     startTransition(async () => {
       setStatus("Uploading…")
-      const up = await uploadFile("vendor-menus", vendorId, file, MAX_MENU_BYTES)
+      const up = await uploadFile("vendor-menus", vendorId, file, MAX_MENU_BYTES, "menu")
       if ("error" in up) {
         setStatus(null)
         toast.error(up.error)
@@ -134,7 +134,7 @@ export function MenuEditor({
               </div>
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={menuFile.url} alt="Your menu" className="size-16 rounded-md object-cover" />
+              <img loading="lazy" decoding="async" src={menuFile.url} alt="Your menu" className="size-16 rounded-md object-cover" />
             )}
           </a>
           <div className="min-w-0 flex-1">

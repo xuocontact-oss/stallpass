@@ -168,10 +168,10 @@ export async function sendApplication(id: string): Promise<ActionState> {
 export async function deleteDraft(id: string): Promise<ActionState> {
   const app = await loadOwnApplication(id)
   if (!app || app.status !== "draft") return { error: "Only drafts can be deleted." }
+  await removeAttachedFiles(app.vendor_id, app.id)
   const supabase = await createClient()
   const { error } = await supabase.from("applications").delete().eq("id", id)
   if (error) return { error: friendlyDbError(error) }
-  await removeAttachedFiles(app.vendor_id, app.id)
   revalidatePath("/applications")
   return { success: "Draft deleted." }
 }

@@ -62,7 +62,7 @@ export default async function AdminVendorPage({ params }: PageProps<"/admin/vend
         <div className="flex gap-2 overflow-x-auto">
           {photos!.map((p) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={p.id} src={publicPhotoUrl("vendor-photos", p.path)} alt="" className="size-24 shrink-0 rounded-lg object-cover" />
+            <img loading="lazy" decoding="async" key={p.id} src={publicPhotoUrl("vendor-photos", p.path)} alt="" className="size-24 shrink-0 rounded-lg object-cover" />
           ))}
         </div>
       )}

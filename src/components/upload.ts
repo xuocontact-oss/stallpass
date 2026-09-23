@@ -1,5 +1,6 @@
 "use client"
 
+import { compressImage, type CompressKind } from "@/components/image-compress"
 import { createClient } from "@/lib/supabase/client"
 import { storageFileName } from "@/lib/storage"
 
@@ -11,9 +12,12 @@ import { storageFileName } from "@/lib/storage"
 export async function uploadFile(
   bucket: "vendor-documents" | "vendor-photos" | "vendor-menus" | "market-photos",
   folder: string,
-  file: File,
-  maxBytes: number
+  original: File,
+  maxBytes: number,
+  shrink?: CompressKind
 ): Promise<{ path: string } | { error: string }> {
+  // Shrink photos first (the size limit applies to what's actually uploaded).
+  const file = shrink ? await compressImage(original, shrink) : original
   if (file.size > maxBytes) {
     return { error: `That file is too big. The limit is ${Math.round(maxBytes / 1024 / 1024)} MB.` }
   }

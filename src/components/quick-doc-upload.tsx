@@ -62,7 +62,7 @@ export function QuickDocUpload({
     if (!file) return setError("Take a photo or choose a file first.")
     if (!expires && !noExpiry) return setError("Add the expiration date, or tick “Doesn't expire”.")
     startTransition(async () => {
-      const up = await uploadFile("vendor-documents", vendorId, file, MAX_DOCUMENT_BYTES)
+      const up = await uploadFile("vendor-documents", vendorId, file, MAX_DOCUMENT_BYTES, "document")
       if ("error" in up) return setError(up.error)
       const result = await saveDocument({
         doc_type: docType as never,

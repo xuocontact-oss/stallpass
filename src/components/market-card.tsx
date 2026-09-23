@@ -26,7 +26,7 @@ export function MarketCard({
       <div className="size-20 shrink-0 overflow-hidden rounded-lg bg-secondary sm:size-24">
         {photoPath ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={publicPhotoUrl("market-photos", photoPath)} alt="" className="size-full object-cover" />
+          <img loading="lazy" decoding="async" src={publicPhotoUrl("market-photos", photoPath)} alt="" className="size-full object-cover" />
         ) : (
           <div className="grid size-full place-items-center text-2xl font-bold text-primary/60">
             {market.name.slice(0, 1)}

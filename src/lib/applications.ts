@@ -16,10 +16,16 @@ import type { Application, Market, Vendor, VendorDocument } from "@/lib/types"
 export async function attachDocuments(application: Pick<Application, "id" | "vendor_id">, docs: VendorDocument[]) {
   const db = createAdminClient()
   for (const doc of docs) {
-    const ext = doc.file_path.includes(".") ? doc.file_path.slice(doc.file_path.lastIndexOf(".")) : ""
-    const copyPath = `${application.vendor_id}/applications/${application.id}/${crypto.randomUUID()}${ext}`
+    // One saved copy per version of a document, shared by every application it
+    // was sent with (instead of a new copy each time). The name includes the
+    // original file's id, so uploading a new version makes a new copy while
+    // markets keep exactly what they were sent.
+    const version = doc.file_path.split("/").pop() ?? crypto.randomUUID()
+    const copyPath = `${application.vendor_id}/applications/sent/${doc.id}-${version}`
     const { error: copyError } = await db.storage.from("vendor-documents").copy(doc.file_path, copyPath)
-    if (copyError) throw new Error(`Couldn't copy ${doc.file_name}: ${copyError.message}`)
+    if (copyError && !/exists|duplicate/i.test(copyError.message)) {
+      throw new Error(`Couldn't copy ${doc.file_name}: ${copyError.message}`)
+    }
     const { error } = await db.from("application_documents").insert({
       application_id: application.id,
       source_document_id: doc.id,
@@ -34,14 +40,22 @@ export async function attachDocuments(application: Pick<Application, "id" | "ven
   }
 }
 
-/** Deletes an application's copied files (used when a draft is deleted). */
-export async function removeAttachedFiles(vendorId: string, applicationId: string) {
+/**
+ * Deletes a draft's saved copies, unless another application still uses them.
+ */
+export async function removeAttachedFiles(_vendorId: string, applicationId: string) {
   const db = createAdminClient()
-  const folder = `${vendorId}/applications/${applicationId}`
-  const { data } = await db.storage.from("vendor-documents").list(folder, { limit: 100 })
-  if (data?.length) {
-    await db.storage.from("vendor-documents").remove(data.map((f) => `${folder}/${f.name}`))
-  }
+  const { data: mine } = await db.from("application_documents").select("file_path").eq("application_id", applicationId)
+  const paths = [...new Set((mine ?? []).map((d) => d.file_path))]
+  if (paths.length === 0) return
+  const { data: stillUsed } = await db
+    .from("application_documents")
+    .select("file_path")
+    .in("file_path", paths)
+    .neq("application_id", applicationId)
+  const keep = new Set((stillUsed ?? []).map((d) => d.file_path))
+  const remove = paths.filter((p) => !keep.has(p))
+  if (remove.length) await db.storage.from("vendor-documents").remove(remove)
 }
 
 export type DeliveryResult =
