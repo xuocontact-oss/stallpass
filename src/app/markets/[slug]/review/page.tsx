@@ -21,7 +21,7 @@ export default async function ShopperReviewPage({ params }: PageProps<"/markets/
   if (!user) redirect(`/login?next=${encodeURIComponent(`/markets/${slug}/review`)}`)
   const today = todayISO()
   const data = await getMarketBySlug(slug, today)
-  if (!data) notFound()
+  if (!data || data.market.is_sample) notFound()
   const { market } = data
   const supabase = await createClient()
   const { data: existing } = await supabase

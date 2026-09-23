@@ -31,6 +31,8 @@ const LABELS: Record<string, string> = {
   create_resource: "Added a Start hub resource",
   update_resource: "Edited a Start hub resource",
   delete_resource: "Deleted a Start hub resource",
+  add_demo_content: "Added example content",
+  remove_demo_content: "Removed example content",
 }
 
 function targetLink(type: string, id: string | null) {

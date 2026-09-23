@@ -519,6 +519,16 @@ await expect("Other vendors don't see B's Square connection", async () => (await
 await as(ADMIN)
 await expect("Even the admin can't read Square tokens from the app", async () => { await q(`select access_token_enc from public.pos_connections`) }, false)
 
+// --- Example (demo) content guardrails -----------------------------------------
+await db.exec(`reset role; set request.jwt.claim.sub=''`)
+const demoM = (await rows(`insert into public.markets(slug,name,address,city,lat,lng,approval_status,is_sample) values('demo-m','Example Market','1 Demo St','LA',34,-118,'approved',true) returning id`))[0].id
+await as(A)
+await expect("Real vendor can't apply to an example market", async () => { await q(`insert into public.applications(vendor_id,market_id,event_dates) values($1,$2,$3)`, [vA, demoM, ["2099-05-01"]]) }, false)
+await expect("Real vendor can't list an example market as one they sell at", async () => { await q(`insert into public.vendor_markets(vendor_id,market_id) values($1,$2)`, [vA, demoM]) }, false)
+await expect("Nobody can claim an example market", async () => { await q(`insert into public.market_claims(market_id,user_id,role) values($1,$2,'Owner')`, [demoM, A]) }, false)
+await expect("Real shoppers can't review an example market", async () => { await q(`insert into public.shopper_reviews(market_id,user_id,visited_on,rating_overall) values($1,$2,current_date - 1,5)`, [demoM, A]) }, false)
+await expect("Real vendor can still apply to real markets", async () => { await q(`insert into public.applications(vendor_id,market_id,event_dates) values($1,$2,$3)`, [vA, m3, ["2099-05-01"]]) }, true)
+
 // --- Suspended admin loses powers -----------------------------------------
 await db.exec(`reset role; set request.jwt.claim.sub=''`)
 await q(`update public.profiles set suspended_at=now() where id=$1`, [ADMIN])

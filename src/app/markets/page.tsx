@@ -72,6 +72,12 @@ export default async function MarketsPage({ searchParams }: PageProps<"/markets"
 
       <MarketFiltersForm key={JSON.stringify(filters)} filters={filters} view={view} defaultZip={homeZip} />
 
+      {results.some((r) => r.market.is_sample) && (
+        <p className="text-xs text-muted-foreground">
+          Markets marked <span className="font-semibold text-violet-700">EXAMPLE</span> are examples showing how Stallpass
+          works, with example reviews. They aren&apos;t real events.
+        </p>
+      )}
       {unknownZip && (
         <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">We don&apos;t recognise ZIP code {filters.zip}. Check it and try again.</p>
       )}

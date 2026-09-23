@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { isAdmin } from "@/lib/auth"
 import { deleteAccountCompletely } from "@/lib/account-deletion"
+import { addDemoContent, removeDemoContent } from "@/lib/demo-content"
 import { logAdminAction } from "@/lib/audit"
 import { emailLayout, escapeHtml, sendEmail, siteUrl } from "@/lib/email"
 import { friendlyDbError, type ActionState } from "@/lib/form"
@@ -215,4 +216,30 @@ export async function adminDeleteAccount(userId: string, reason?: string): Promi
   }
   revalidatePath("/admin", "layout")
   return { success: `Deleted ${target.email}.` }
+}
+
+export async function addExampleContent(): Promise<ActionState> {
+  if (!(await isAdmin())) return NOT_ADMIN
+  try {
+    const msg = await addDemoContent()
+    await logAdminAction("add_demo_content", "system", null, { result: msg })
+    revalidatePath("/", "layout")
+    return { success: msg }
+  } catch (e) {
+    console.error(e)
+    return { error: "Adding example content failed partway. Try “Remove all example content”, then add it again." }
+  }
+}
+
+export async function removeExampleContent(): Promise<ActionState> {
+  if (!(await isAdmin())) return NOT_ADMIN
+  try {
+    const msg = await removeDemoContent()
+    await logAdminAction("remove_demo_content", "system", null, { result: msg })
+    revalidatePath("/", "layout")
+    return { success: msg }
+  } catch (e) {
+    console.error(e)
+    return { error: "Removing example content failed. Please try again." }
+  }
 }

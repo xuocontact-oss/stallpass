@@ -11,6 +11,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         <Link href="/admin" className="hover:text-primary">Overview</Link>
         <Link href="/admin/approvals" className="hover:text-primary">Approvals</Link>
         <Link href="/admin/outreach" className="hover:text-primary">Outreach</Link>
+        <Link href="/admin/demo" className="hover:text-primary">Example content</Link>
         <Link href="/admin/accounts" className="hover:text-primary">Accounts</Link>
         <Link href="/admin/vendors" className="hover:text-primary">Vendors</Link>
         <Link href="/admin/documents" className="hover:text-primary">Documents</Link>

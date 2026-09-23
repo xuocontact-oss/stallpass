@@ -24,6 +24,7 @@ export async function generateMetadata({ params }: PageProps<"/markets/[slug]">)
   const data = await getMarketBySlug(slug, todayISO())
   if (!data) return { title: "Market" }
   const m = data.market
+  if (m.is_sample) return { title: `${m.name} (example)`, robots: { index: false, follow: false } }
   return {
     title: `${m.name}, ${m.city}`,
     description: [m.schedule_summary, `${m.market_type === "farmers" ? "Farmers market" : "Market"} in ${m.city}, ${m.state}.`, "Dates, booth fees, requirements and reviews."]
@@ -119,6 +120,15 @@ export default async function MarketPage({ params, searchParams }: PageProps<"/m
         )}
       </div>
 
+      {market.is_sample && (
+        <p className="rounded-xl border-2 border-dashed border-violet-300 bg-violet-50 p-4 text-sm text-violet-950">
+          <span className="font-semibold">This is an example market</span> to show how Stallpass works. The ratings and
+          reviews are examples too. Real markets near you are in the{" "}
+          <Link href="/markets" className="font-medium underline">directory</Link>.
+        </p>
+      )}
+
+      {!market.is_sample && (
       <section className="rounded-xl border-2 border-primary/30 bg-background p-4">
         {!user ? (
           <>
@@ -175,6 +185,7 @@ export default async function MarketPage({ params, searchParams }: PageProps<"/m
           </>
         )}
       </section>
+      )}
 
       <a href={mapsUrl} target="_blank" rel="noopener" className="flex items-start gap-2 rounded-xl border bg-background p-4">
         <MapPin className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
@@ -290,9 +301,11 @@ export default async function MarketPage({ params, searchParams }: PageProps<"/m
               </p>
             )}
           </div>
-          <Link href={`/markets/${market.slug}/review`} className={buttonVariants({ size: "sm", variant: "outline" })}>
-            Write a review
-          </Link>
+          {!market.is_sample && (
+            <Link href={`/markets/${market.slug}/review`} className={buttonVariants({ size: "sm", variant: "outline" })}>
+              Write a review
+            </Link>
+          )}
         </div>
         {reviewedNow && <p className="mb-3 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Thanks! Your review is posted.</p>}
         {shopperReviews.length === 0 ? (
@@ -302,7 +315,7 @@ export default async function MarketPage({ params, searchParams }: PageProps<"/m
         )}
       </section>
 
-      {!market.is_claimed && (
+      {!market.is_claimed && !market.is_sample && (
         <p className="text-center text-sm text-muted-foreground">
           Run this market?{" "}
           <Link href={`/claim/${market.slug}`} className="font-medium text-primary">

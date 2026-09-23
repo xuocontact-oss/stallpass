@@ -25,7 +25,7 @@ const BENEFITS = [
 export default async function ClaimPage({ params }: PageProps<"/claim/[slug]">) {
   const { slug } = await params
   const data = await getMarketBySlug(slug, todayISO())
-  if (!data) notFound()
+  if (!data || data.market.is_sample) notFound()
   const { market } = data
   const user = await getUser()
   const vendorCount = await vendorCountFor(market.id)

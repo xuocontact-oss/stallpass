@@ -279,6 +279,7 @@ export async function searchMarketsForPicker(query: string): Promise<{ id: strin
     .select("id, name, city, state")
     .eq("is_published", true)
     .eq("approval_status", "approved")
+    .eq("is_sample", false)
     .or(`name.ilike.%${term}%,city.ilike.%${term}%`)
     .order("name")
     .limit(8)

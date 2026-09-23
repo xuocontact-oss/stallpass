@@ -15,7 +15,7 @@ export default async function ApplyPage({ params }: PageProps<"/markets/[slug]/a
   const { slug } = await params
   const today = todayISO()
   const data = await getMarketBySlug(slug, today)
-  if (!data) notFound()
+  if (!data || (data.market.is_sample && !vendor.is_sample)) notFound()
   const { market, dates } = data
 
   const supabase = await createClient()
