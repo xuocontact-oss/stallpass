@@ -7,11 +7,12 @@ export const revalidate = 86400 // rebuild once a day
 
 /** Tells Google about every public market page. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
-    auth: { persistSession: false },
-  })
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   const markets: { slug: string; updated_at: string }[] = []
-  for (let from = 0; from < 45000; from += 1000) {
+  // Without database settings (e.g. a build before they're added), list just the fixed pages.
+  const db = url && key ? createClient(url, key, { auth: { persistSession: false } }) : null
+  for (let from = 0; db && from < 45000; from += 1000) {
     const { data } = await db
       .from("markets")
       .select("slug, updated_at")
