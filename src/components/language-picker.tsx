@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { LANG_COOKIE, type Lang } from "@/lib/i18n/core"
+import { LANG_COOKIE, LANG_PICKED_COOKIE, type Lang } from "@/lib/i18n/core"
 import { useT } from "@/lib/i18n/client"
 import { cn } from "@/lib/utils"
 
@@ -14,6 +14,7 @@ function useSetLang() {
   const [pending, startTransition] = useTransition()
   function setLang(lang: Lang) {
     document.cookie = `${LANG_COOKIE}=${lang}; Path=/; Max-Age=${YEAR}; SameSite=Lax`
+    document.cookie = `${LANG_PICKED_COOKIE}=1; Path=/; Max-Age=${YEAR}; SameSite=Lax`
     // Clear leftovers from the old page-translator option.
     document.cookie = "lang_other=; Path=/; Max-Age=0"
     document.cookie = "googtrans=; Path=/; Max-Age=0"
@@ -68,7 +69,7 @@ export function LanguagePicker({ hasChosen }: { hasChosen: boolean }) {
   )
 }
 
-/** EN | ES switch for the header, with a sliding highlight. */
+/** Green EN | ES switch for the header, with a sliding highlight. */
 export function LanguageButton({ className }: { className?: string }) {
   const { lang } = useT()
   const { setLang, pending } = useSetLang()
@@ -76,25 +77,38 @@ export function LanguageButton({ className }: { className?: string }) {
     <div
       role="radiogroup"
       aria-label="Language · Idioma"
-      className={cn("relative grid h-8 w-[5.5rem] grid-cols-2 rounded-full bg-muted p-0.5 text-xs font-semibold", pending && "opacity-70", className)}
+      className={cn(
+        "relative grid h-9 w-[7.5rem] grid-cols-2 rounded-full bg-emerald-600 p-1 text-sm font-bold shadow-sm ring-2 ring-emerald-600/20",
+        pending && "opacity-80",
+        className
+      )}
     >
       <span
         aria-hidden
         className={cn(
-          "absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded-full bg-background shadow-sm transition-transform duration-300 ease-out",
+          "absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-white shadow transition-transform duration-300 ease-out",
           lang === "es" && "translate-x-full"
         )}
       />
-      {(["en", "es"] as const).map((code) => (
+      {(
+        [
+          ["en", "🇺🇸", "English"],
+          ["es", "🇲🇽", "Español"],
+        ] as const
+      ).map(([code, flag, name]) => (
         <button
           key={code}
           type="button"
           role="radio"
           aria-checked={lang === code}
-          aria-label={code === "en" ? "English" : "Español"}
+          aria-label={name}
           onClick={() => lang !== code && setLang(code)}
-          className={cn("relative z-10 rounded-full transition-colors", lang === code ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+          className={cn(
+            "relative z-10 flex items-center justify-center gap-1 rounded-full transition-colors",
+            lang === code ? "text-emerald-700" : "text-white hover:text-emerald-50"
+          )}
         >
+          <span aria-hidden className="text-base leading-none">{flag}</span>
           {code.toUpperCase()}
         </button>
       ))}

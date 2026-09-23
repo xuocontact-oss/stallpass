@@ -9,6 +9,8 @@ import { es } from "./es.ts"
 export type Lang = "en" | "es"
 export const LANGS: Lang[] = ["en", "es"]
 export const LANG_COOKIE = "lang"
+/** Set once someone has picked a language, so the first-visit pop-up stops showing. */
+export const LANG_PICKED_COOKIE = "lang_picked"
 
 const DICTS: Record<Lang, Record<string, string>> = { en: {}, es }
 
