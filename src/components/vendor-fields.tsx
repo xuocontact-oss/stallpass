@@ -4,42 +4,44 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FOOD_CATEGORIES, isFoodCategory, SETUP_TYPES } from "@/lib/constants"
+import { getT } from "@/lib/i18n/server"
 import { publicPhotoUrl } from "@/lib/storage"
 import type { Vendor } from "@/lib/types"
 
 /** The basics every vendor fills in (used in onboarding and on the profile page). */
-export function VendorBasicFields({ vendor }: { vendor?: Vendor | null }) {
+export async function VendorBasicFields({ vendor }: { vendor?: Vendor | null }) {
+  const t = await getT()
   return (
     <>
       <div className="space-y-1.5">
-        <Label htmlFor="business_name">Business name</Label>
+        <Label htmlFor="business_name">{t("Business name")}</Label>
         <Input id="business_name" name="business_name" defaultValue={vendor?.business_name} required maxLength={100} />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="category">What do you mainly sell?</Label>
+        <Label htmlFor="category">{t("What do you mainly sell?")}</Label>
         <select id="category" name="category" defaultValue={vendor?.category ?? ""} required className={selectClassName}>
           <option value="" disabled>
-            Choose one…
+            {t("Choose one…")}
           </option>
-          <optgroup label="Food & drink">
+          <optgroup label={t("Food & drink")}>
             {FOOD_CATEGORIES.filter((c) => isFoodCategory(c.key) && c.key !== "other").map((c) => (
               <option key={c.key} value={c.key}>
-                {c.label}
+                {t(c.label)}
               </option>
             ))}
           </optgroup>
-          <optgroup label="Other goods">
+          <optgroup label={t("Other goods")}>
             {FOOD_CATEGORIES.filter((c) => !isFoodCategory(c.key)).map((c) => (
               <option key={c.key} value={c.key}>
-                {c.label}
+                {t(c.label)}
               </option>
             ))}
           </optgroup>
-          <option value="other">Something else</option>
+          <option value="other">{t("Something else")}</option>
         </select>
       </div>
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Your setup</legend>
+        <legend className="text-sm font-medium">{t("Your setup")}</legend>
         <div className="grid grid-cols-2 gap-2">
           {SETUP_TYPES.map((s) => (
             <label
@@ -53,19 +55,19 @@ export function VendorBasicFields({ vendor }: { vendor?: Vendor | null }) {
                 defaultChecked={(vendor?.setup_type ?? "tent") === s.key}
                 className="accent-primary"
               />
-              {s.label}
+              {t(s.label)}
             </label>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">Not food? Pick &ldquo;Tent / table&rdquo;.</p>
+        <p className="text-xs text-muted-foreground">{t("Not food? Pick “Tent / table”.")}</p>
         <div className="flex flex-wrap gap-4 pt-1">
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="needs_power" defaultChecked={vendor?.needs_power} className="size-4 accent-primary" />
-            I need power
+            {t("I need power")}
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="needs_water" defaultChecked={vendor?.needs_water} className="size-4 accent-primary" />
-            I need water
+            {t("I need water")}
           </label>
         </div>
       </fieldset>

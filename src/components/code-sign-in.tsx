@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Turnstile } from "@/components/turnstile"
 import { sendSignInCode, verifySignInCode } from "@/actions/auth"
+import { useT } from "@/lib/i18n/client"
 
 /**
  * Sign in or sign up with a 6-digit code: type your email, then the code from
@@ -18,7 +19,7 @@ export function CodeSignIn({
   market,
   refCode,
   defaultEmail = "",
-  buttonLabel = "Email me a code",
+  buttonLabel,
   large = false,
 }: {
   next: string
@@ -35,6 +36,7 @@ export function CodeSignIn({
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   const formRef = useRef<HTMLFormElement>(null)
+  const { t } = useT()
 
   function send(e?: React.FormEvent) {
     e?.preventDefault()
@@ -44,8 +46,8 @@ export function CodeSignIn({
       : null
     startTransition(async () => {
       const r = await sendSignInCode({ email, next, market, ref: refCode, captchaToken })
-      if (r?.error) return setError(r.error)
-      setMessage(r?.success ?? null)
+      if (r?.error) return setError(t(r.error))
+      setMessage(r?.email ? t("We emailed a 6-digit code to {email}.", { email: r.email }) : null)
       setStage("code")
     })
   }
@@ -55,7 +57,7 @@ export function CodeSignIn({
     setError(null)
     startTransition(async () => {
       const r = await verifySignInCode({ email, code, next, market, ref: refCode })
-      if (r?.error) setError(r.error)
+      if (r?.error) setError(t(r.error))
     })
   }
 
@@ -66,7 +68,7 @@ export function CodeSignIn({
       <form onSubmit={verify} className="space-y-3">
         <p className="text-sm">{message}</p>
         <div className="space-y-1.5">
-          <Label htmlFor="code">6-digit code</Label>
+          <Label htmlFor="code">{t("6-digit code")}</Label>
           <Input
             id="code"
             value={code}
@@ -77,18 +79,18 @@ export function CodeSignIn({
             placeholder="123456"
             className={`${size} tracking-[0.3em]`}
           />
-          <p className="text-xs text-muted-foreground">On iPhone, the code often appears above the keyboard. Tap it.</p>
+          <p className="text-xs text-muted-foreground">{t("On iPhone, the code often appears above the keyboard. Tap it.")}</p>
         </div>
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         <Button type="submit" size="lg" className="w-full" disabled={pending || code.length < 6}>
-          {pending ? "Checking…" : "Continue"}
+          {pending ? t("Checking…") : t("Continue")}
         </Button>
         <div className="flex justify-between text-sm">
           <button type="button" className="text-muted-foreground" onClick={() => { setStage("email"); setCode("") }}>
-            Change email
+            {t("Change email")}
           </button>
           <button type="button" className="font-medium text-primary" disabled={pending} onClick={() => send()}>
-            Send a new code
+            {t("Send a new code")}
           </button>
         </div>
       </form>
@@ -98,7 +100,7 @@ export function CodeSignIn({
   return (
     <form ref={formRef} onSubmit={send} className="space-y-3">
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t("Email")}</Label>
         <Input
           id="email"
           type="email"
@@ -114,11 +116,11 @@ export function CodeSignIn({
       <Turnstile />
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? "Sending…" : buttonLabel}
+        {pending ? t("Sending…") : (buttonLabel ?? t("Email me a code"))}
       </Button>
       <p className="text-xs text-muted-foreground">
-        No password needed. By continuing you agree to our <Link href="/terms" className="underline">Terms</Link> and{" "}
-        <Link href="/privacy" className="underline">Privacy Policy</Link>.
+        {t("No password needed. By continuing you agree to our")} <Link href="/terms" className="underline">{t("Terms")}</Link> {t("and")}{" "}
+        <Link href="/privacy" className="underline">{t("Privacy Policy")}</Link>.
       </p>
     </form>
   )

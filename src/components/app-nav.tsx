@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ClipboardList, FileText, House, MapPin, Store } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useT } from "@/lib/i18n/client"
 
 const LINKS = [
   { href: "/dashboard", label: "Home", icon: House },
@@ -20,6 +21,7 @@ function isActive(pathname: string, href: string) {
 /** Links along the top on computers. */
 export function DesktopNav() {
   const pathname = usePathname()
+  const { t } = useT()
   return (
     <nav className="hidden items-center gap-1 md:flex">
       {LINKS.map((l) => (
@@ -31,7 +33,7 @@ export function DesktopNav() {
             isActive(pathname, l.href) && "bg-secondary text-foreground"
           )}
         >
-          {l.label}
+          {t(l.label)}
         </Link>
       ))}
     </nav>
@@ -41,6 +43,7 @@ export function DesktopNav() {
 /** Thumb-friendly tab bar along the bottom on phones. */
 export function MobileTabBar() {
   const pathname = usePathname()
+  const { t } = useT()
   return (
     <nav className="fixed inset-x-0 bottom-0 z-[1000] border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
       <div className="mx-auto grid max-w-md grid-cols-5">
@@ -56,7 +59,7 @@ export function MobileTabBar() {
               )}
             >
               <Icon className="size-5" aria-hidden />
-              {label}
+              {t(label)}
             </Link>
           )
         })}

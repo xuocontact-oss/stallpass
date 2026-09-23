@@ -39,10 +39,10 @@ export function isValidISODate(value: string | null | undefined): value is strin
   return addDays(value, 0) === value
 }
 
-/** "Mar 5, 2027" */
-export function formatDate(iso: string | null | undefined, opts?: { weekday?: boolean }): string {
+/** "Mar 5, 2027" (or "5 mar 2027" with lang: "es") */
+export function formatDate(iso: string | null | undefined, opts?: { weekday?: boolean; lang?: "en" | "es" }): string {
   if (!iso) return ""
-  return new Date(toUTC(iso)).toLocaleDateString("en-US", {
+  return new Date(toUTC(iso)).toLocaleDateString(opts?.lang === "es" ? "es-US" : "en-US", {
     timeZone: "UTC",
     month: "short",
     day: "numeric",
@@ -60,8 +60,14 @@ export function formatTime(t: string | null | undefined): string {
   return m ? `${hour}:${String(m).padStart(2, "0")}${suffix}` : `${hour}${suffix}`
 }
 
-/** "in 12 days", "tomorrow", "today", "3 days ago" */
-export function relativeDays(days: number): string {
+/** "in 12 days", "tomorrow", "today", "3 days ago" (Spanish with lang: "es") */
+export function relativeDays(days: number, lang: "en" | "es" = "en"): string {
+  if (lang === "es") {
+    if (days === 0) return "hoy"
+    if (days === 1) return "mañana"
+    if (days === -1) return "ayer"
+    return days > 0 ? `en ${days} días` : `hace ${-days} días`
+  }
   if (days === 0) return "today"
   if (days === 1) return "tomorrow"
   if (days === -1) return "yesterday"

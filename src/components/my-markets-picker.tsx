@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { Plus, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { addMyMarket, removeMyMarket, searchMarketsForPicker } from "@/actions/vendor"
+import { useT } from "@/lib/i18n/client"
 
 type M = { id: string; name: string; city: string; state: string }
 
@@ -15,6 +16,7 @@ export function MyMarketsPicker({ selected }: { selected: M[] }) {
   const [q, setQ] = useState("")
   const [results, setResults] = useState<M[]>([])
   const [pending, startTransition] = useTransition()
+  const { t } = useT()
 
   useEffect(() => {
     const t = setTimeout(async () => setResults(q.trim().length >= 2 ? await searchMarketsForPicker(q) : []), 250)
@@ -43,7 +45,7 @@ export function MyMarketsPicker({ selected }: { selected: M[] }) {
           ))}
         </div>
       )}
-      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search a market or city" aria-label="Search markets" />
+      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Search a market or city")} aria-label={t("Search markets")} />
       {results.length > 0 && (
         <ul className="divide-y rounded-lg border bg-background">
           {results.map((m) => (

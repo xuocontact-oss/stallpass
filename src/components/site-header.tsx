@@ -3,12 +3,15 @@ import { LayoutGrid, LogOut, Shield, UserRound } from "lucide-react"
 import { signOut } from "@/actions/auth"
 import { DesktopNav, MobileTabBar } from "@/components/app-nav"
 import { buttonVariants } from "@/components/ui/button"
+import { LanguageButton } from "@/components/language-picker"
 import { getMyVendor, getProfile } from "@/lib/auth"
+import { getT } from "@/lib/i18n/server"
 
 export async function SiteHeader() {
   const profile = await getProfile()
   const vendor = profile ? await getMyVendor() : null
   const admin = Boolean(profile?.is_super_admin && !profile.suspended_at)
+  const t = await getT()
 
   return (
     <>
@@ -25,13 +28,14 @@ export async function SiteHeader() {
           </Link>
           {vendor && <DesktopNav />}
           <div className="ml-auto flex items-center gap-1">
+            <LanguageButton className={buttonVariants({ variant: "ghost", size: "sm", className: "gap-1 px-2 text-xs" })} />
             {!vendor && !profile?.is_organizer && (
               <>
                 <Link href="/start" className={buttonVariants({ variant: "ghost", className: "hidden sm:inline-flex" })}>
-                  Get started
+                  {t("Get started")}
                 </Link>
                 <Link href="/markets" className={buttonVariants({ variant: "ghost" })}>
-                  Markets
+                  {t("Markets")}
                 </Link>
               </>
             )}
@@ -47,7 +51,7 @@ export async function SiteHeader() {
             )}
             {profile && (
               <Link href="/account" className={buttonVariants({ variant: "ghost" })}>
-                <UserRound /> <span className="hidden sm:inline">Account</span>
+                <UserRound /> <span className="hidden sm:inline">{t("Account")}</span>
               </Link>
             )}
             {profile ? (
@@ -55,18 +59,18 @@ export async function SiteHeader() {
                 <button
                   type="submit"
                   className={buttonVariants({ variant: "ghost" })}
-                  aria-label="Sign out"
+                  aria-label={t("Sign out")}
                 >
-                  <LogOut /> <span className="hidden sm:inline">Sign out</span>
+                  <LogOut /> <span className="hidden sm:inline">{t("Sign out")}</span>
                 </button>
               </form>
             ) : (
               <>
-                <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
-                  Sign in
+                <Link href="/login" className={buttonVariants({ variant: "ghost", className: "hidden sm:inline-flex" })}>
+                  {t("Sign in")}
                 </Link>
                 <Link href="/login?next=/onboarding" className={buttonVariants()}>
-                  Sign up
+                  {t("Sign up")}
                 </Link>
               </>
             )}

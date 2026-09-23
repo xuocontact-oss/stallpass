@@ -11,6 +11,7 @@ import { uploadFile } from "@/components/upload"
 import { saveDocument } from "@/actions/documents"
 import { MAX_DOCUMENT_BYTES } from "@/lib/constants"
 import { formatDate } from "@/lib/dates"
+import { useT } from "@/lib/i18n/client"
 
 /**
  * One document slot in the setup: "Health permit: [take photo / choose file]
@@ -37,6 +38,7 @@ export function QuickDocUpload({
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   const [replacing, setReplacing] = useState(false)
+  const { t, lang } = useT()
 
   if (uploaded && !replacing) {
     return (
@@ -46,11 +48,11 @@ export function QuickDocUpload({
           <p className="font-medium">{label}</p>
           <p className="truncate text-muted-foreground">
             {uploaded.file_name}
-            {uploaded.expiration_date ? ` · expires ${formatDate(uploaded.expiration_date)}` : ""}
+            {uploaded.expiration_date ? ` · ${t("expires")} ${formatDate(uploaded.expiration_date, { lang })}` : ""}
           </p>
         </div>
         <button type="button" onClick={() => setReplacing(true)} className="text-sm font-medium text-primary">
-          Add another
+          {t("Add another")}
         </button>
       </div>
     )
@@ -59,11 +61,11 @@ export function QuickDocUpload({
   function save() {
     setError(null)
     const file = fileRef.current?.files?.[0]
-    if (!file) return setError("Take a photo or choose a file first.")
-    if (!expires && !noExpiry) return setError("Add the expiration date, or tick “Doesn't expire”.")
+    if (!file) return setError(t("Take a photo or choose a file first."))
+    if (!expires && !noExpiry) return setError(t("Add the expiration date, or tick “Doesn't expire”."))
     startTransition(async () => {
       const up = await uploadFile("vendor-documents", vendorId, file, MAX_DOCUMENT_BYTES, "document")
-      if ("error" in up) return setError(up.error)
+      if ("error" in up) return setError(t(up.error))
       const result = await saveDocument({
         doc_type: docType as never,
         title: null,
@@ -72,8 +74,8 @@ export function QuickDocUpload({
         notes: null,
         file: { path: up.path, name: file.name.slice(0, 200) },
       })
-      if (result?.error) return setError(result.error)
-      toast.success(`${label} saved.`)
+      if (result?.error) return setError(t(result.error))
+      toast.success(t("{doc} saved.", { doc: label }))
       setReplacing(false)
       setFileName(null)
       setExpires("")
@@ -89,7 +91,7 @@ export function QuickDocUpload({
       </div>
       <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed p-3 hover:border-primary">
         <FileUp className="size-5 shrink-0 text-primary" aria-hidden />
-        <span className="min-w-0 truncate text-sm">{fileName ?? "Take a photo or choose a file (PDF, JPG, PNG)"}</span>
+        <span className="min-w-0 truncate text-sm">{fileName ?? t("Take a photo or choose a file (PDF, JPG, PNG)")}</span>
         <input
           ref={fileRef}
           type="file"
@@ -101,7 +103,7 @@ export function QuickDocUpload({
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
           <Label htmlFor={`exp-${docType}`} className="text-xs">
-            Expires on
+            {t("Expires on")}
           </Label>
           <Input
             id={`exp-${docType}`}
@@ -114,10 +116,10 @@ export function QuickDocUpload({
         </div>
         <label className="flex h-9 items-center gap-2 text-sm">
           <input type="checkbox" checked={noExpiry} onChange={(e) => setNoExpiry(e.target.checked)} className="size-4 accent-primary" />
-          Doesn&apos;t expire
+          {t("Doesn't expire")}
         </label>
         <Button type="button" size="sm" className="ml-auto h-9" onClick={save} disabled={pending}>
-          {pending ? "Uploading…" : "Save"}
+          {pending ? t("Uploading…") : t("Save")}
         </Button>
       </div>
       {error && (
@@ -127,7 +129,7 @@ export function QuickDocUpload({
       )}
       {replacing && (
         <button type="button" onClick={() => setReplacing(false)} className="text-xs text-muted-foreground">
-          Cancel
+          {t("Cancel")}
         </button>
       )}
     </div>

@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { ImagePlus, X } from "lucide-react"
 import { uploadFile } from "@/components/upload"
 import { MAX_PHOTO_BYTES } from "@/lib/constants"
+import { useT } from "@/lib/i18n/client"
 import type { ActionState } from "@/lib/form"
 
 /** A grid of photos with "add" and "remove". Used for vendors and markets. */
@@ -28,6 +29,7 @@ export function PhotoManager({
   const inputRef = useRef<HTMLInputElement>(null)
   const [pending, startTransition] = useTransition()
   const [busyId, setBusyId] = useState<string | null>(null)
+  const { t } = useT()
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []).slice(0, Math.max(0, max - photos.length))
@@ -37,7 +39,7 @@ export function PhotoManager({
       for (const file of files) {
         const up = await uploadFile(bucket, folder, file, MAX_PHOTO_BYTES, "photo")
         if ("error" in up) {
-          toast.error(up.error)
+          toast.error(t(up.error))
           continue
         }
         const result = await onAdd(up.path)
@@ -67,7 +69,7 @@ export function PhotoManager({
             type="button"
             onClick={() => remove(p.id)}
             disabled={pending}
-            aria-label="Remove photo"
+            aria-label={t("Remove photo")}
             className="absolute top-1 right-1 grid size-8 place-items-center rounded-full bg-black/60 text-white disabled:opacity-50"
           >
             {busyId === p.id ? "…" : <X className="size-4" />}
@@ -82,7 +84,7 @@ export function PhotoManager({
           className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border border-dashed bg-background text-sm text-muted-foreground hover:border-primary disabled:opacity-50"
         >
           <ImagePlus className="size-6" aria-hidden />
-          {pending && !busyId ? "Uploading…" : "Add photo"}
+          {pending && !busyId ? t("Uploading…") : t("Add photo")}
         </button>
       )}
       <input

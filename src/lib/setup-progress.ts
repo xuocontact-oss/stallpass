@@ -15,7 +15,7 @@ export function vendorSetupProgress(
   const items = [
     { label: "Owner & business basics", done: Boolean(vendor?.phone), step: 1 },
     { label: "Description and menu or product list", done: Boolean(vendor?.description && vendor?.menu), step: 2 },
-    { label: `Documents (${docsDone} of ${expected.length})`, done: docsDone === expected.length, step: 3 },
+    { label: "Documents ({done} of {total})", done: docsDone === expected.length, step: 3 },
   ]
   const firstUndone = items.find((i) => !i.done)
   return {
