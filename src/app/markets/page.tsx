@@ -9,6 +9,7 @@ import { getDirectory } from "@/lib/market-data"
 import { getProfile } from "@/lib/auth"
 import { DEFAULT_CENTER, filterMarkets, formatMoney, originFor, parseFilters } from "@/lib/markets"
 import { zipToPoint } from "@/lib/zips"
+import { getLang, getT } from "@/lib/i18n/server"
 
 export const metadata = { title: "Find markets" }
 
@@ -33,6 +34,8 @@ export default async function MarketsPage({ searchParams }: PageProps<"/markets"
   })
   const results = filterMarkets(directory.markets, directory.dates, filters, today, origin)
   const unknownZip = Boolean(filters.zip) && !zipPoint
+  const t = await getT()
+  const lang = await getLang()
 
   const viewHref = (v: "list" | "map") => {
     const next = new URLSearchParams()
@@ -46,9 +49,9 @@ export default async function MarketsPage({ searchParams }: PageProps<"/markets"
     <main className="mx-auto w-full max-w-3xl space-y-4 px-4 py-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Find markets</h1>
+          <h1 className="text-2xl font-bold">{t("Find markets")}</h1>
           <p className="text-sm text-muted-foreground">
-            {results.length} {results.length === 1 ? "market" : "markets"}
+            {results.length === 1 ? t("1 market") : t("{n} markets", { n: results.length })}
           </p>
         </div>
         <div className="flex rounded-lg border bg-background p-0.5" role="tablist" aria-label="View">
@@ -64,7 +67,7 @@ export default async function MarketsPage({ searchParams }: PageProps<"/markets"
               )}
             >
               {v === "list" ? <List className="size-4" /> : <MapIcon className="size-4" />}
-              {v === "list" ? "List" : "Map"}
+              {v === "list" ? t("List") : t("Map")}
             </Link>
           ))}
         </div>
@@ -74,23 +77,23 @@ export default async function MarketsPage({ searchParams }: PageProps<"/markets"
 
       {results.some((r) => r.market.is_sample) && (
         <p className="text-xs text-muted-foreground">
-          Markets marked <span className="font-semibold text-violet-700">EXAMPLE</span> are examples showing how Stallpass
-          works, with example reviews. They aren&apos;t real events.
+          {t("Markets marked EXAMPLE are examples showing how Stallpass works, with example reviews. They aren't real events.")}
         </p>
       )}
       {unknownZip && (
-        <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">We don&apos;t recognise ZIP code {filters.zip}. Check it and try again.</p>
+        <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">{t("We don't recognise ZIP code {zip}. Check it and try again.", { zip: filters.zip })}</p>
       )}
       {!origin && !filters.q && (
         <p className="rounded-lg bg-secondary p-3 text-sm">
-          Showing markets listed on Stallpass. <span className="font-medium">Enter your ZIP code</span> or tap the
-          location button to find farmers markets near you anywhere in the US.
+          {t("Showing markets listed on Stallpass. Enter your ZIP code or tap the location button to find farmers markets near you anywhere in the US.")}
         </p>
       )}
       {origin && (
         <p className="text-sm text-muted-foreground">
-          Within {filters.miles} miles of {filters.lat != null ? "your location" : `ZIP ${zip}`}
-          {homeZip && " (your home ZIP)"}
+          {filters.lat != null
+            ? t("Within {miles} miles of your location", { miles: filters.miles })
+            : t("Within {miles} miles of ZIP {zip}", { miles: filters.miles, zip })}
+          {homeZip && ` (${t("your home ZIP")})`}
         </p>
       )}
 
@@ -105,8 +108,8 @@ export default async function MarketsPage({ searchParams }: PageProps<"/markets"
             lng: r.market.lng,
             subtitle: [
               r.market.city,
-              r.nextDate ? `Next: ${formatDate(r.nextDate.event_date)}` : null,
-              r.market.min_booth_fee_cents != null ? `from ${formatMoney(r.market.min_booth_fee_cents)}` : null,
+              r.nextDate ? `${t("Next:")} ${formatDate(r.nextDate.event_date, { lang })}` : null,
+              r.market.min_booth_fee_cents != null ? t("from {price}", { price: formatMoney(r.market.min_booth_fee_cents) }) : null,
             ]
               .filter(Boolean)
               .join(" · "),
@@ -114,8 +117,8 @@ export default async function MarketsPage({ searchParams }: PageProps<"/markets"
         />
       ) : results.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-background p-6 text-center">
-          <p className="font-medium">No markets match those filters</p>
-          <p className="mt-1 text-sm text-muted-foreground">Try a wider distance or a different date.</p>
+          <p className="font-medium">{t("No markets match those filters")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("Try a wider distance or a different date.")}</p>
         </div>
       ) : (
         <div className="space-y-3">

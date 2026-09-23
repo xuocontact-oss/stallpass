@@ -13,6 +13,7 @@ import { uploadFile } from "@/components/upload"
 import { saveDocument } from "@/actions/documents"
 import { DOCUMENT_TYPES, MAX_DOCUMENT_BYTES } from "@/lib/constants"
 import type { VendorDocument } from "@/lib/types"
+import { useT } from "@/lib/i18n/client"
 
 /** Add or edit a document. The file goes straight from the phone to private storage. */
 export function DocumentForm({
@@ -30,6 +31,7 @@ export function DocumentForm({
   const [docType, setDocType] = useState(document?.doc_type ?? defaultType ?? "")
   const [fileName, setFileName] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const { t } = useT()
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -43,14 +45,14 @@ export function DocumentForm({
 
     startTransition(async () => {
       if (!document && !file) {
-        setError("Choose a file to upload (a PDF or a photo of the document).")
+        setError(t("Choose a file to upload (a PDF or a photo of the document)."))
         return
       }
       let uploaded: { path: string; name: string } | null = null
       if (file) {
         const up = await uploadFile("vendor-documents", vendorId, file, MAX_DOCUMENT_BYTES, "document")
         if ("error" in up) {
-          setError(up.error)
+          setError(t(up.error))
           return
         }
         uploaded = { path: up.path, name: file.name.slice(0, 200) }
@@ -66,10 +68,10 @@ export function DocumentForm({
         file: uploaded,
       })
       if (result?.error) {
-        setError(result.error)
+        setError(t(result.error))
         return
       }
-      toast.success(result?.success ?? "Saved.")
+      toast.success(t(result?.success ?? "Saved."))
       if (document) {
         setFileName(null)
         if (fileRef.current) fileRef.current.value = ""
@@ -83,7 +85,7 @@ export function DocumentForm({
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       <div className="space-y-1.5">
-        <Label htmlFor="doc_type">What is it?</Label>
+        <Label htmlFor="doc_type">{t("What is it?")}</Label>
         <select
           id="doc_type"
           name="doc_type"
@@ -93,11 +95,11 @@ export function DocumentForm({
           className={selectClassName}
         >
           <option value="" disabled>
-            Choose a type…
+            {t("Choose a type…")}
           </option>
-          {DOCUMENT_TYPES.map((t) => (
-            <option key={t.key} value={t.key}>
-              {t.label}
+          {DOCUMENT_TYPES.map((dt) => (
+            <option key={dt.key} value={dt.key}>
+              {t(dt.label)}
             </option>
           ))}
         </select>
@@ -105,7 +107,7 @@ export function DocumentForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="title">
-          Name {docType !== "other" && <span className="font-normal text-muted-foreground">(optional)</span>}
+          {t("Name")} {docType !== "other" && <span className="font-normal text-muted-foreground">({t("optional")})</span>}
         </Label>
         <Input
           id="title"
@@ -113,12 +115,12 @@ export function DocumentForm({
           maxLength={100}
           defaultValue={document?.title ?? ""}
           required={docType === "other"}
-          placeholder={docType === "other" ? "e.g. Fire inspection" : "e.g. LA County permit #12345"}
+          placeholder={docType === "other" ? t("e.g. Fire inspection") : t("e.g. LA County permit #12345")}
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="file">{document ? "Replace the file" : "File"}</Label>
+        <Label htmlFor="file">{document ? t("Replace the file") : t("File")}</Label>
         <label
           htmlFor="file"
           className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed bg-background p-4 hover:border-primary"
@@ -126,9 +128,9 @@ export function DocumentForm({
           <FileUp className="size-6 shrink-0 text-primary" aria-hidden />
           <span className="min-w-0 text-sm">
             <span className="block truncate font-medium">
-              {fileName ?? (document ? document.file_name : "Take a photo or choose a file")}
+              {fileName ?? (document ? document.file_name : t("Take a photo or choose a file"))}
             </span>
-            <span className="text-muted-foreground">PDF, JPG or PNG, up to 10 MB</span>
+            <span className="text-muted-foreground">{t("PDF, JPG or PNG, up to 10 MB")}</span>
           </span>
         </label>
         <input
@@ -143,11 +145,11 @@ export function DocumentForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="issue_date">Issue date</Label>
+          <Label htmlFor="issue_date">{t("Issue date")}</Label>
           <Input id="issue_date" name="issue_date" type="date" defaultValue={document?.issue_date ?? ""} />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="expiration_date">Expiration date</Label>
+          <Label htmlFor="expiration_date">{t("Expiration date")}</Label>
           <Input
             id="expiration_date"
             name="expiration_date"
@@ -157,12 +159,12 @@ export function DocumentForm({
         </div>
       </div>
       <p className="-mt-3 text-xs text-muted-foreground">
-        Add the expiration date so we can remind you before it runs out.
+        {t("Add the expiration date so we can remind you before it runs out.")}
       </p>
 
       <div className="space-y-1.5">
         <Label htmlFor="notes">
-          Notes <span className="font-normal text-muted-foreground">(optional)</span>
+          {t("Notes")} <span className="font-normal text-muted-foreground">({t("optional")})</span>
         </Label>
         <Textarea id="notes" name="notes" rows={2} maxLength={500} defaultValue={document?.notes ?? ""} />
       </div>
@@ -173,7 +175,7 @@ export function DocumentForm({
         </p>
       )}
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? "Saving…" : document ? "Save changes" : "Add document"}
+        {pending ? t("Saving…") : document ? t("Save changes") : t("Add document")}
       </Button>
     </form>
   )

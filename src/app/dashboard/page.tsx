@@ -13,11 +13,14 @@ import { createClient } from "@/lib/supabase/server"
 import { vendorSetupProgress } from "@/lib/setup-progress"
 import { getMyDocuments } from "@/lib/vendor-data"
 import { cn } from "@/lib/utils"
+import { getLang, getT } from "@/lib/i18n/server"
 
 export const metadata = { title: "Home" }
 
 export default async function DashboardPage() {
   const { vendor } = await requireVendor()
+  const t = await getT()
+  const lang = await getLang()
   const today = todayISO()
   const supabase = await createClient()
   const [docs, directory, { data: apps }] = await Promise.all([
@@ -68,11 +71,10 @@ export default async function DashboardPage() {
     <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6">
       <div>
         <h1 className="text-2xl font-bold">
-          Hi, 
-          {vendor.business_name}
+          {t("Hi, {name}", { name: vendor.business_name })}
         </h1>
         <p className="text-muted-foreground">
-          Here&apos;s where things stand.
+          {t("Here's where things stand.")}
         </p>
       </div>
 
@@ -80,9 +82,12 @@ export default async function DashboardPage() {
         <Link href={`/onboarding?step=${setup.nextStep}`} className="block rounded-xl border-2 border-primary/40 bg-background p-4">
           <div className="flex items-center justify-between gap-3">
             <span>
-              <span className="block font-semibold">Finish setting up your business</span>
+              <span className="block font-semibold">{t("Finish setting up your business")}</span>
               <span className="text-sm text-muted-foreground">
-                {setup.stepsDone} of 3 done · next: {setup.items.find((i) => !i.done)?.label.toLowerCase()}
+                {t("{n} of 3 done · next: {step}", {
+                  n: setup.stepsDone,
+                  step: t(setup.items.find((i) => !i.done)?.label ?? "", { done: setup.docsDone, total: setup.docsTotal }).toLowerCase(),
+                })}
               </span>
             </span>
             <ArrowRight className="size-5 shrink-0 text-primary" aria-hidden />
@@ -96,25 +101,25 @@ export default async function DashboardPage() {
       )}
       {docs.length < 3 && (
         <p className="text-sm">
-          First time selling at markets?{" "}
+          {t("First time selling at markets?")}{" "}
           <Link href="/start" className="font-medium text-primary">
-            Check out our quick start guide →
+            {t("Check out our quick start guide →")}
           </Link>
         </p>
       )}
 
       <section className="rounded-xl border bg-background p-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Your documents</h2>
+          <h2 className="font-semibold">{t("Your documents")}</h2>
           <Link href="/documents" className="text-sm font-medium text-primary">
-            See all
+            {t("See all")}
           </Link>
         </div>
         <div className="mt-3 grid grid-cols-3 gap-2">
-          {tiles.map((t) => (
-            <Link key={t.label} href={t.href} className="rounded-lg bg-muted/60 p-3 text-center">
-              <div className={cn("text-2xl font-bold", t.value > 0 && t.className)}>{t.value}</div>
-              <div className="text-xs text-muted-foreground">{t.label}</div>
+          {tiles.map((tile) => (
+            <Link key={tile.label} href={tile.href} className="rounded-lg bg-muted/60 p-3 text-center">
+              <div className={cn("text-2xl font-bold", tile.value > 0 && tile.className)}>{tile.value}</div>
+              <div className="text-xs text-muted-foreground">{t(tile.label)}</div>
             </Link>
           ))}
         </div>
@@ -125,10 +130,10 @@ export default async function DashboardPage() {
               <li key={d.id}>
                 <Link href={`/documents/${d.id}`} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium">{d.title || documentTypeLabel(d.doc_type)}</div>
+                    <div className="truncate font-medium">{d.title || t(documentTypeLabel(d.doc_type))}</div>
                     <div className="text-sm text-muted-foreground">
-                      {daysBetween(today, d.expiration_date!) < 0 ? "Expired" : "Expires"}{" "}
-                      {formatDate(d.expiration_date)} ({relativeDays(daysBetween(today, d.expiration_date!))})
+                      {daysBetween(today, d.expiration_date!) < 0 ? t("Expired") : t("Expires")}{" "}
+                      {formatDate(d.expiration_date, { lang })} ({relativeDays(daysBetween(today, d.expiration_date!), lang)})
                     </div>
                   </div>
                   <DocStatusBadge status={documentStatus(d.expiration_date, today)} />
@@ -140,14 +145,14 @@ export default async function DashboardPage() {
 
         {missing.length > 0 && (
           <div className="mt-4 rounded-lg border border-dashed p-3">
-            <p className="text-sm font-medium">Most markets ask for these. You haven&apos;t added:</p>
+            <p className="text-sm font-medium">{t("Most markets ask for these. You haven't added:")}</p>
             <ul className="mt-1 text-sm text-muted-foreground">
               {missing.map((m) => (
-                <li key={m.key}>• {m.label}</li>
+                <li key={m.key}>• {t(m.label)}</li>
               ))}
             </ul>
             <Link href="/documents/new" className={cn(buttonVariants({ size: "sm" }), "mt-3")}>
-              <Plus /> Add a document
+              <Plus /> {t("Add a document")}
             </Link>
           </div>
         )}
@@ -155,16 +160,16 @@ export default async function DashboardPage() {
 
       {salesToReport.length > 0 && (
         <section className="space-y-2 rounded-xl border-2 border-amber-300 bg-background p-4">
-          <h2 className="font-semibold">Report your sales</h2>
+          <h2 className="font-semibold">{t("Report your sales")}</h2>
           <ul className="space-y-2">
             {salesToReport.slice(0, 5).map((r) => (
               <li key={`${r.appId}${r.date}`}>
                 <Link href={`/applications/${r.appId}/sales?date=${r.date}`} className="flex items-center justify-between gap-2 text-sm">
                   <span>
-                    {r.market} · {formatDate(r.date, { weekday: true })}
-                    {r.required && <span className="ml-1 text-xs text-amber-700">(required)</span>}
+                    {r.market} · {formatDate(r.date, { weekday: true, lang })}
+                    {r.required && <span className="ml-1 text-xs text-amber-700">({t("required")})</span>}
                   </span>
-                  <span className="font-medium text-primary">Report →</span>
+                  <span className="font-medium text-primary">{t("Report →")}</span>
                 </Link>
               </li>
             ))}
@@ -175,18 +180,18 @@ export default async function DashboardPage() {
       {upcomingApps.length > 0 && (
         <section className="rounded-xl border bg-background p-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Your applications</h2>
-            <Link href="/applications" className="text-sm font-medium text-primary">See all</Link>
+            <h2 className="font-semibold">{t("Your applications")}</h2>
+            <Link href="/applications" className="text-sm font-medium text-primary">{t("See all")}</Link>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2">
             {[
               { label: "Accepted", value: appCounts.accepted, href: "/applications?status=accepted" },
               { label: "Waiting", value: appCounts.waiting, href: "/applications?status=waiting" },
               { label: "Drafts", value: appCounts.drafts, href: "/applications?status=draft" },
-            ].map((t) => (
-              <Link key={t.label} href={t.href} className="rounded-lg bg-muted/60 p-3 text-center">
-                <div className="text-2xl font-bold">{t.value}</div>
-                <div className="text-xs text-muted-foreground">{t.label}</div>
+            ].map((tile) => (
+              <Link key={tile.label} href={tile.href} className="rounded-lg bg-muted/60 p-3 text-center">
+                <div className="text-2xl font-bold">{tile.value}</div>
+                <div className="text-xs text-muted-foreground">{t(tile.label)}</div>
               </Link>
             ))}
           </div>
@@ -195,14 +200,14 @@ export default async function DashboardPage() {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Markets in the next 30 days</h2>
+          <h2 className="font-semibold">{t("Markets in the next 30 days")}</h2>
           <Link href="/markets" className="text-sm font-medium text-primary">
-            Browse all
+            {t("Browse all")}
           </Link>
         </div>
         {upcoming.length === 0 ? (
           <p className="rounded-xl border bg-background p-4 text-sm text-muted-foreground">
-            No markets with dates in the next 30 days yet.
+            {t("No markets with dates in the next 30 days yet.")}
           </p>
         ) : (
           upcoming.map((r) => (

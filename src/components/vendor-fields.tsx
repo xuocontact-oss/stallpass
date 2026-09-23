@@ -76,24 +76,25 @@ export async function VendorBasicFields({ vendor }: { vendor?: Vendor | null }) 
 }
 
 /** Everything else on the profile page. */
-export function VendorDetailFields({ vendor }: { vendor: Vendor }) {
+export async function VendorDetailFields({ vendor }: { vendor: Vendor }) {
+  const t = await getT()
   const text = (name: keyof Vendor, label: string, props: React.ComponentProps<typeof Input> = {}) => (
     <div className="space-y-1.5">
-      <Label htmlFor={name}>{label}</Label>
+      <Label htmlFor={name}>{t(label)}</Label>
       <Input id={name} name={name} defaultValue={(vendor[name] as string | null) ?? ""} {...props} />
     </div>
   )
   return (
     <>
       <div className="space-y-1.5">
-        <Label htmlFor="description">About your business</Label>
+        <Label htmlFor="description">{t("About your business")}</Label>
         <Textarea
           id="description"
           name="description"
           rows={4}
           maxLength={2000}
           defaultValue={vendor.description ?? ""}
-          placeholder="What you sell, what makes you special, how long you've been doing markets…"
+          placeholder={t("What you sell, what makes you special, how long you've been doing markets…")}
         />
       </div>
       <MenuEditor
@@ -106,17 +107,17 @@ export function VendorDetailFields({ vendor }: { vendor: Vendor }) {
         }
       />
       <div className="space-y-1.5">
-        <Label htmlFor="setup_notes">Setup details</Label>
+        <Label htmlFor="setup_notes">{t("Setup details")}</Label>
         <Textarea
           id="setup_notes"
           name="setup_notes"
           rows={2}
           maxLength={500}
           defaultValue={vendor.setup_notes ?? ""}
-          placeholder="e.g. 10x10 tent, one 20A outlet, generator available"
+          placeholder={t("e.g. 10x10 tent, one 20A outlet, generator available")}
         />
       </div>
-      {text("service_area", "Where you'll travel", { placeholder: "e.g. LA County, up to 30 miles from Echo Park", maxLength: 200 })}
+      {text("service_area", "Where you'll travel", { placeholder: t("e.g. LA County, up to 30 miles from Echo Park"), maxLength: 200 })}
       {text("phone", "Business phone", { type: "tel", maxLength: 30 })}
       <div className="grid gap-4 sm:grid-cols-2">
         {text("instagram", "Instagram", { placeholder: "@yourbusiness", maxLength: 200 })}

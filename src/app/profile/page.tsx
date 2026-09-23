@@ -13,6 +13,7 @@ import { MAX_VENDOR_PHOTOS } from "@/lib/constants"
 import { publicPhotoUrl } from "@/lib/storage"
 import { createClient } from "@/lib/supabase/server"
 import { getMyPhotos } from "@/lib/vendor-data"
+import { getT } from "@/lib/i18n/server"
 
 export const metadata = { title: "Business profile" }
 
@@ -26,23 +27,24 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
   const sellsAt = ((mine ?? []) as unknown as { markets: { id: string; name: string; city: string; state: string } | null }[])
     .map((r) => r.markets)
     .filter((m): m is { id: string; name: string; city: string; state: string } => m !== null)
+  const t = await getT()
 
   return (
     <main className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold">
-          Business profile {vendor.is_sample && <SampleBadge />}
+          {t("Business profile")} {vendor.is_sample && <SampleBadge />}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Markets see this when you apply, so make it look good.
+          {t("Markets see this when you apply, so make it look good.")}
         </p>
       </div>
 
       <section className="space-y-3 rounded-xl border bg-background p-4">
         <div>
-          <h2 className="font-semibold">Photos</h2>
+          <h2 className="font-semibold">{t("Photos")}</h2>
           <p className="text-sm text-muted-foreground">
-            Your booth or truck, your food, your setup. Up to {MAX_VENDOR_PHOTOS}.
+            {t("Your booth or truck, your food, your setup. Up to {n}.", { n: MAX_VENDOR_PHOTOS })}
           </p>
         </div>
         <PhotoManager
@@ -57,37 +59,37 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
 
       <section id="connected-apps" className="scroll-mt-20 space-y-3 rounded-xl border bg-background p-4">
         <div>
-          <h2 className="font-semibold">Connected apps</h2>
-          <p className="text-sm text-muted-foreground">Connect your card reader to fill in sales reports with one tap. We can only read your sales totals, never move money.</p>
+          <h2 className="font-semibold">{t("Connected apps")}</h2>
+          <p className="text-sm text-muted-foreground">{t("Connect your card reader to fill in sales reports with one tap. We can only read your sales totals, never move money.")}</p>
         </div>
-        {squareResult === "connected" && <p className="rounded-lg bg-emerald-50 p-2.5 text-sm text-emerald-900">Square connected!</p>}
-        {squareResult === "declined" && <p className="rounded-lg bg-muted p-2.5 text-sm">Square wasn&apos;t connected.</p>}
-        {squareResult === "failed" && <p className="rounded-lg bg-red-50 p-2.5 text-sm text-red-900">Connecting Square didn&apos;t work. Please try again.</p>}
-        {squareResult === "unavailable" && <p className="rounded-lg bg-muted p-2.5 text-sm">Square connection isn&apos;t switched on yet.</p>}
+        {squareResult === "connected" && <p className="rounded-lg bg-emerald-50 p-2.5 text-sm text-emerald-900">{t("Square connected!")}</p>}
+        {squareResult === "declined" && <p className="rounded-lg bg-muted p-2.5 text-sm">{t("Square wasn't connected.")}</p>}
+        {squareResult === "failed" && <p className="rounded-lg bg-red-50 p-2.5 text-sm text-red-900">{t("Connecting Square didn't work. Please try again.")}</p>}
+        {squareResult === "unavailable" && <p className="rounded-lg bg-muted p-2.5 text-sm">{t("Square connection isn't switched on yet.")}</p>}
         <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
           <span className="text-sm">
             <span className="block font-medium">Square</span>
             <span className="text-muted-foreground">
-              {squareConn ? `Connected${squareConn.business_name ? ` to ${squareConn.business_name}` : ""}` : "Not connected"}
+              {squareConn ? (squareConn.business_name ? t("Connected to {name}", { name: squareConn.business_name }) : t("Connected")) : t("Not connected")}
             </span>
           </span>
           {squareConn ? (
-            <ConfirmButton size="sm" variant="ghost" action={disconnectSquareAction} confirmText="Disconnect Square?">
-              Disconnect
+            <ConfirmButton size="sm" variant="ghost" action={disconnectSquareAction} confirmText={t("Disconnect Square?")}>
+              {t("Disconnect")}
             </ConfirmButton>
           ) : squareConfigured() ? (
-            <a href="/api/square/connect" className={buttonVariants({ size: "sm" })}>Connect</a>
+            <a href="/api/square/connect" className={buttonVariants({ size: "sm" })}>{t("Connect")}</a>
           ) : (
-            <span className="text-xs text-muted-foreground">Coming soon</span>
+            <span className="text-xs text-muted-foreground">{t("Coming soon")}</span>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">Clover, SumUp and Shopify coming later.</p>
+        <p className="text-xs text-muted-foreground">{t("Clover, SumUp and Shopify coming later.")}</p>
       </section>
 
       <section className="space-y-3 rounded-xl border bg-background p-4">
         <div>
-          <h2 className="font-semibold">Markets you sell at</h2>
-          <p className="text-sm text-muted-foreground">Organizers only see how many vendors listed their market, never who.</p>
+          <h2 className="font-semibold">{t("Markets you sell at")}</h2>
+          <p className="text-sm text-muted-foreground">{t("Organizers only see how many vendors listed their market, never who.")}</p>
         </div>
         <MyMarketsPicker selected={sellsAt} />
       </section>
@@ -95,8 +97,8 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
       <ActionForm action={updateVendor} className="space-y-5 rounded-xl border bg-background p-4">
         <VendorBasicFields vendor={vendor} />
         <VendorDetailFields vendor={vendor} />
-        <SubmitButton size="lg" className="w-full" pendingText="Saving…">
-          Save profile
+        <SubmitButton size="lg" className="w-full" pendingText={t("Saving…")}>
+          {t("Save profile")}
         </SubmitButton>
       </ActionForm>
     </main>

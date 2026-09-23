@@ -1,6 +1,10 @@
+"use client"
+
 import Link from "next/link"
 import { CalendarDays, MapPin, Star } from "lucide-react"
+import { MarketCover } from "@/components/market-cover"
 import { SampleBadge } from "@/components/sample-badge"
+import { useT } from "@/lib/i18n/client"
 import { marketTypeLabel } from "@/lib/constants"
 import { formatDate, formatTime } from "@/lib/dates"
 import { formatMoney, type MarketResult } from "@/lib/markets"
@@ -17,6 +21,7 @@ export function MarketCard({
 }) {
   const { market, nextDate, matchingDates, distance } = result
   const more = matchingDates.length - 1
+  const { t, lang } = useT()
 
   return (
     <Link
@@ -28,9 +33,7 @@ export function MarketCard({
           // eslint-disable-next-line @next/next/no-img-element
           <img loading="lazy" decoding="async" src={publicPhotoUrl("market-photos", photoPath)} alt="" className="size-full object-cover" />
         ) : (
-          <div className="grid size-full place-items-center text-2xl font-bold text-primary/60">
-            {market.name.slice(0, 1)}
-          </div>
+          <MarketCover type={market.market_type} name={market.name} className="size-full" />
         )}
       </div>
       <div className="min-w-0 flex-1">
@@ -39,7 +42,7 @@ export function MarketCard({
           {market.is_sample && <SampleBadge />}
         </div>
         <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-          {marketTypeLabel(market.market_type)}
+          {t(marketTypeLabel(market.market_type))}
           {rating && (
             <>
               {" · "}
@@ -59,17 +62,17 @@ export function MarketCard({
           <CalendarDays className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
           {nextDate ? (
             <span>
-              {formatDate(nextDate.event_date, { weekday: true })}
+              {formatDate(nextDate.event_date, { weekday: true, lang })}
               {nextDate.starts_at && `, ${formatTime(nextDate.starts_at)}`}
-              {more > 0 && <span className="text-muted-foreground"> +{more} more</span>}
+              {more > 0 && <span className="text-muted-foreground"> {t("+{n} more", { n: more })}</span>}
             </span>
           ) : (
-            <span className="text-muted-foreground">No upcoming dates listed</span>
+            <span className="text-muted-foreground">{t("No upcoming dates listed")}</span>
           )}
         </p>
         {market.min_booth_fee_cents != null && (
           <p className="mt-0.5 text-sm font-medium">
-            Booths from {formatMoney(market.min_booth_fee_cents)}
+            {t("Booths from {price}", { price: formatMoney(market.min_booth_fee_cents) })}
           </p>
         )}
       </div>

@@ -15,7 +15,8 @@
     "test:logic": "node --test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/logic.test.ts",
     "test": "npm run test:logic && npm run test:security",
     "import:usda": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/import-usda.mts",
-    "db:all": "cat supabase/migrations/*.sql > supabase/all-in-one.sql && pbcopy < supabase/all-in-one.sql && echo \"Copied ALL database setup ($(ls supabase/migrations/*.sql | wc -l | tr -d ' ') files) for a brand-new project. Paste into the SQL Editor and click Run.\""
+    "db:all": "cat supabase/migrations/*.sql > supabase/all-in-one.sql && pbcopy < supabase/all-in-one.sql && echo \"Copied ALL database setup ($(ls supabase/migrations/*.sql | wc -l | tr -d ' ') files) for a brand-new project. Paste into the SQL Editor and click Run.\"",
+    "i18n:check": "node scripts/i18n-check.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

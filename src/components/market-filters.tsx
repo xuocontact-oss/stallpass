@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FOOD_CATEGORIES } from "@/lib/constants"
+import { useT } from "@/lib/i18n/client"
 import { DISTANCE_OPTIONS, MAX_FEE_OPTIONS, WHEN_OPTIONS, type MarketFilters } from "@/lib/markets"
 
 /** The directory filters. They live in the page address, so results can be shared or bookmarked. */
@@ -31,13 +32,14 @@ export function MarketFiltersForm({
   )
   const [locating, setLocating] = useState(false)
   const [locError, setLocError] = useState<string | null>(null)
+  const { t } = useT()
 
   const activeCount = [filters.when, filters.category, filters.maxFee].filter(Boolean).length
 
   function useMyLocation() {
     setLocError(null)
     if (!navigator.geolocation) {
-      setLocError("Your browser can't share location. Type your ZIP code instead.")
+      setLocError(t("Your browser can't share location. Type your ZIP code instead."))
       return
     }
     setLocating(true)
@@ -58,7 +60,7 @@ export function MarketFiltersForm({
         router.push(`${pathname}?${params}`)
       },
       () => {
-        setLocError("Couldn't get your location. Type your ZIP code instead.")
+        setLocError(t("Couldn't get your location. Type your ZIP code instead."))
         setLocating(false)
       },
       { timeout: 10000 }
@@ -96,68 +98,68 @@ export function MarketFiltersForm({
             setZip(e.target.value.replace(/\D/g, "").slice(0, 5))
             if (e.target.value) setPoint(null)
           }}
-          placeholder={point ? "Near me" : "ZIP code"}
-          aria-label="ZIP code"
+          placeholder={point ? t("Near me") : t("ZIP code")}
+          aria-label={t("ZIP code")}
           className="w-28 shrink-0"
         />
-        <Button type="button" variant="outline" size="icon-lg" className="size-10 shrink-0" onClick={useMyLocation} aria-label="Use my location" title="Use my location">
+        <Button type="button" variant="outline" size="icon-lg" className="size-10 shrink-0" onClick={useMyLocation} aria-label={t("Use my location")} title={t("Use my location")}>
           <LocateFixed className={locating ? "animate-pulse" : undefined} />
         </Button>
-        <Input name="q" defaultValue={filters.q} placeholder="Market or city name" aria-label="Search" />
+        <Input name="q" defaultValue={filters.q} placeholder={t("Market or city name")} aria-label={t("Search")} />
       </div>
 
       {locError && <p className="text-sm text-destructive">{locError}</p>}
       <div className="flex items-center gap-2">
-        <Button type="submit" size="sm">Search</Button>
+        <Button type="submit" size="sm">{t("Search")}</Button>
         <Button type="button" variant="ghost" size="sm" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
           <SlidersHorizontal />
-          More filters{activeCount > 0 && ` (${activeCount})`}
+          {t("More filters")}{activeCount > 0 && ` (${activeCount})`}
         </Button>
       </div>
 
       <div className={open ? "space-y-4 rounded-xl border bg-background p-4" : "hidden"}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="when">When</Label>
+            <Label htmlFor="when">{t("When")}</Label>
             <select id="when" name="when" value={when} onChange={(e) => setWhen(e.target.value)} className={selectClassName}>
               {WHEN_OPTIONS.map((o) => (
                 <option key={o.key} value={o.key}>
-                  {o.label}
+                  {t(o.label)}
                 </option>
               ))}
             </select>
             {when === "date" && (
-              <Input name="on" type="date" defaultValue={filters.on} aria-label="Date" className="mt-2" />
+              <Input name="on" type="date" defaultValue={filters.on} aria-label={t("Date")} className="mt-2" />
             )}
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">{t("Category")}</Label>
             <select id="category" name="category" defaultValue={filters.category} className={selectClassName}>
-              <option value="">Any category</option>
+              <option value="">{t("Any category")}</option>
               {FOOD_CATEGORIES.map((c) => (
                 <option key={c.key} value={c.key}>
-                  {c.label}
+                  {t(c.label)}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="miles">Within</Label>
+            <Label htmlFor="miles">{t("Within")}</Label>
             <select id="miles" name="miles" defaultValue={String(filters.miles)} disabled={!zip && !point} className={selectClassName}>
               {DISTANCE_OPTIONS.map((m) => (
                 <option key={m} value={m}>
-                  {m} miles
+                  {t("{n} miles", { n: m })}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="maxFee">Booth fee up to</Label>
+            <Label htmlFor="maxFee">{t("Booth fee up to")}</Label>
             <select id="maxFee" name="maxFee" defaultValue={filters.maxFee ? String(filters.maxFee) : ""} className={selectClassName}>
-              <option value="">Any fee</option>
+              <option value="">{t("Any fee")}</option>
               {MAX_FEE_OPTIONS.map((f) => (
                 <option key={f} value={f}>
                   ${f}
@@ -168,7 +170,7 @@ export function MarketFiltersForm({
         </div>
         <div className="flex gap-2">
           <Button type="submit" className="flex-1">
-            Show markets
+            {t("Show markets")}
           </Button>
           <Button
             type="button"
@@ -178,7 +180,7 @@ export function MarketFiltersForm({
               router.push(view === "map" ? `${pathname}?view=map` : pathname)
             }}
           >
-            Clear
+            {t("Clear")}
           </Button>
         </div>
       </div>

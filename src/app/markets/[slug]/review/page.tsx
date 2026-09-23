@@ -11,6 +11,7 @@ import { getUser } from "@/lib/auth"
 import { addDays, todayISO } from "@/lib/dates"
 import { getMarketBySlug } from "@/lib/market-data"
 import { createClient } from "@/lib/supabase/server"
+import { getT } from "@/lib/i18n/server"
 
 export const metadata = { title: "Review a market" }
 
@@ -30,52 +31,53 @@ export default async function ShopperReviewPage({ params }: PageProps<"/markets/
     .eq("market_id", market.id)
     .eq("user_id", user.id)
     .maybeSingle()
+  const t = await getT()
 
   return (
     <main className="mx-auto w-full max-w-lg space-y-5 px-4 py-6">
       <Link href={`/markets/${market.slug}`} className="text-sm text-muted-foreground">← {market.name}</Link>
       <div>
-        <h1 className="text-2xl font-bold">{existing ? "Edit your review" : `How was ${market.name}?`}</h1>
-        <p className="text-sm text-muted-foreground">Shown as a shopper review, with your first name and last initial.</p>
+        <h1 className="text-2xl font-bold">{existing ? t("Edit your review") : t("How was {market}?", { market: market.name })}</h1>
+        <p className="text-sm text-muted-foreground">{t("Shown as a shopper review, with your first name and last initial.")}</p>
       </div>
       {market.organizer_id === user.id ? (
-        <p className="rounded-lg bg-muted p-3 text-sm">You run this market, so you can&apos;t review it. You can reply to reviews from your dashboard.</p>
+        <p className="rounded-lg bg-muted p-3 text-sm">{t("You run this market, so you can't review it. You can reply to reviews from your dashboard.")}</p>
       ) : (
         <ActionForm action={saveShopperReview} className="space-y-5">
           <input type="hidden" name="market_id" value={market.id} />
           <section className="space-y-1 rounded-xl border bg-background p-4">
-            <StarInput name="rating_overall" label="Overall" defaultValue={existing?.rating_overall ?? 0} />
-            <p className="pt-2 text-xs text-muted-foreground">Optional:</p>
-            <StarInput name="rating_variety" label="Variety of vendors" defaultValue={existing?.rating_variety ?? 0} />
-            <StarInput name="rating_atmosphere" label="Atmosphere" defaultValue={existing?.rating_atmosphere ?? 0} />
-            <StarInput name="rating_prices" label="Prices" defaultValue={existing?.rating_prices ?? 0} />
+            <StarInput name="rating_overall" label={t("Overall")} defaultValue={existing?.rating_overall ?? 0} />
+            <p className="pt-2 text-xs text-muted-foreground">{t("Optional:")}</p>
+            <StarInput name="rating_variety" label={t("Variety of vendors")} defaultValue={existing?.rating_variety ?? 0} />
+            <StarInput name="rating_atmosphere" label={t("Atmosphere")} defaultValue={existing?.rating_atmosphere ?? 0} />
+            <StarInput name="rating_prices" label={t("Prices")} defaultValue={existing?.rating_prices ?? 0} />
           </section>
           <section className="space-y-4 rounded-xl border bg-background p-4">
             <div className="space-y-1.5">
-              <Label htmlFor="visited_on">When did you go?</Label>
+              <Label htmlFor="visited_on">{t("When did you go?")}</Label>
               <Input id="visited_on" name="visited_on" type="date" required max={today} min={addDays(today, -365)} defaultValue={existing?.visited_on ?? today} className="w-44" />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="body">Your review (optional)</Label>
+              <Label htmlFor="body">{t("Your review (optional)")}</Label>
               <Textarea
                 id="body"
                 name="body"
                 rows={5}
                 maxLength={2000}
                 defaultValue={existing?.body ?? ""}
-                placeholder="What did you love? Parking, crowds, best stalls, good for kids or dogs…"
+                placeholder={t("What did you love? Parking, crowds, best stalls, good for kids or dogs…")}
               />
-              <p className="text-xs text-muted-foreground">Keep it about the market. Reviews with personal attacks or spam are removed.</p>
+              <p className="text-xs text-muted-foreground">{t("Keep it about the market. Reviews with personal attacks or spam are removed.")}</p>
             </div>
           </section>
-          <SubmitButton size="lg" className="w-full" pendingText="Posting…">
-            {existing ? "Save review" : "Post review"}
+          <SubmitButton size="lg" className="w-full" pendingText={t("Posting…")}>
+            {existing ? t("Save review") : t("Post review")}
           </SubmitButton>
         </ActionForm>
       )}
       {existing && (
-        <ConfirmButton variant="ghost" className="w-full text-destructive" action={deleteShopperReview.bind(null, existing.id)} confirmText="Delete your review?" redirectTo={`/markets/${market.slug}`}>
-          Delete review
+        <ConfirmButton variant="ghost" className="w-full text-destructive" action={deleteShopperReview.bind(null, existing.id)} confirmText={t("Delete your review?")} redirectTo={`/markets/${market.slug}`}>
+          {t("Delete review")}
         </ConfirmButton>
       )}
     </main>

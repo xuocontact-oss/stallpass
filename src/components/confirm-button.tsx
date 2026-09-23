@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import type { ActionState } from "@/lib/form"
+import { useT } from "@/lib/i18n/client"
 
 /** A button that asks "are you sure?" and then runs a server action. */
 export function ConfirmButton({
@@ -20,6 +21,7 @@ export function ConfirmButton({
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
+  const { t } = useT()
   return (
     <Button
       type="button"
@@ -28,9 +30,9 @@ export function ConfirmButton({
         if (!window.confirm(confirmText)) return
         startTransition(async () => {
           const result = await action()
-          if (result?.error) toast.error(result.error)
+          if (result?.error) toast.error(t(result.error))
           else {
-            if (result?.success) toast.success(result.success)
+            if (result?.success) toast.success(t(result.success))
             if (redirectTo) router.push(redirectTo)
             else router.refresh()
           }
@@ -38,7 +40,7 @@ export function ConfirmButton({
       }}
       {...props}
     >
-      {pending ? "Working…" : children}
+      {pending ? t("Working…") : children}
     </Button>
   )
 }

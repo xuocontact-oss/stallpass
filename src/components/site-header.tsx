@@ -28,7 +28,7 @@ export async function SiteHeader() {
           </Link>
           {vendor && <DesktopNav />}
           <div className="ml-auto flex items-center gap-1">
-            <LanguageButton className={buttonVariants({ variant: "ghost", size: "sm", className: "gap-1 px-2 text-xs" })} />
+            <LanguageButton />
             {!vendor && !profile?.is_organizer && (
               <>
                 <Link href="/start" className={buttonVariants({ variant: "ghost", className: "hidden sm:inline-flex" })}>

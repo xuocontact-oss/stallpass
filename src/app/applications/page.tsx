@@ -7,6 +7,7 @@ import { formatDate, todayISO } from "@/lib/dates"
 import { throwIfError } from "@/lib/form"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
+import { getLang, getT } from "@/lib/i18n/server"
 
 export const metadata = { title: "Applications" }
 
@@ -29,6 +30,8 @@ const FILTERS = [
 export default async function ApplicationsPage({ searchParams }: PageProps<"/applications">) {
   const { vendor } = await requireVendor()
   const { status } = await searchParams
+  const t = await getT()
+  const lang = await getLang()
   const filter = FILTERS.find((f) => f.key === status) ?? FILTERS[0]
   const supabase = await createClient()
   const { data, error } = await supabase
@@ -52,7 +55,7 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/app
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium">{a.markets?.name}</div>
               <div className="truncate text-sm text-muted-foreground">
-                {a.event_dates.map((d) => formatDate(d)).join(", ")}
+                {a.event_dates.map((d) => formatDate(d, { lang })).join(", ")}
               </div>
             </div>
             <ApplicationStatusBadge status={a.status} />
@@ -65,7 +68,7 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/app
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-5 px-4 py-6">
-      <h1 className="text-2xl font-bold">Applications</h1>
+      <h1 className="text-2xl font-bold">{t("Applications")}</h1>
       {allApps.length > 0 && (
         <nav className="-mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filter">
           {FILTERS.map((f) => (
@@ -77,32 +80,32 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/app
                 filter.key === f.key ? "border-primary bg-primary text-primary-foreground" : "bg-background"
               )}
             >
-              {f.label}
+              {t(f.label)}
             </Link>
           ))}
         </nav>
       )}
       {allApps.length > 0 && apps.length === 0 ? (
-        <p className="rounded-xl border bg-background p-4 text-sm text-muted-foreground">Nothing here.</p>
+        <p className="rounded-xl border bg-background p-4 text-sm text-muted-foreground">{t("Nothing here.")}</p>
       ) : apps.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-background p-6 text-center">
-          <p className="font-medium">No applications yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Find a market and tap Quick apply.</p>
+          <p className="font-medium">{t("No applications yet")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("Find a market and tap Quick apply.")}</p>
           <Link href="/markets" className={buttonVariants({ size: "lg", className: "mt-4" })}>
-            Find markets
+            {t("Find markets")}
           </Link>
         </div>
       ) : (
         <>
           {upcoming.length > 0 && (
             <section className="space-y-2">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase">Upcoming</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase">{t("Upcoming")}</h2>
               {list(upcoming)}
             </section>
           )}
           {past.length > 0 && (
             <section className="space-y-2">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase">Past & cancelled</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase">{t("Past & cancelled")}</h2>
               {list(past)}
             </section>
           )}

@@ -8,6 +8,7 @@ import { daysBetween, formatDate, relativeDays, todayISO } from "@/lib/dates"
 import { compareByUrgency, documentStatus } from "@/lib/documents"
 import { getMyDocuments } from "@/lib/vendor-data"
 import { cn } from "@/lib/utils"
+import { getLang, getT } from "@/lib/i18n/server"
 
 export const metadata = { title: "Documents" }
 
@@ -21,6 +22,8 @@ const FILTERS = [
 export default async function DocumentsPage({ searchParams }: PageProps<"/documents">) {
   const { vendor } = await requireVendor()
   const { status } = await searchParams
+  const t = await getT()
+  const lang = await getLang()
   const active = FILTERS.find((f) => f.key === status)?.key ?? ""
   const today = todayISO()
   const allDocs = (await getMyDocuments(vendor.id)).sort(compareByUrgency)
@@ -37,11 +40,11 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
     <main className="mx-auto w-full max-w-3xl space-y-5 px-4 py-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Documents</h1>
-          <p className="text-sm text-muted-foreground">Private. Only you can see these.</p>
+          <h1 className="text-2xl font-bold">{t("Documents")}</h1>
+          <p className="text-sm text-muted-foreground">{t("Private. Only you can see these.")}</p>
         </div>
         <Link href="/documents/new" className={buttonVariants()}>
-          <Plus /> Add
+          <Plus /> {t("Add")}
         </Link>
       </div>
 
@@ -56,22 +59,22 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
                 active === f.key ? "border-primary bg-primary text-primary-foreground" : "bg-background"
               )}
             >
-              {f.label}
+              {t(f.label)}
             </Link>
           ))}
         </nav>
       )}
 
       {allDocs.length > 0 && docs.length === 0 ? (
-        <p className="rounded-xl border bg-background p-4 text-sm text-muted-foreground">No documents with that status.</p>
+        <p className="rounded-xl border bg-background p-4 text-sm text-muted-foreground">{t("No documents with that status.")}</p>
       ) : docs.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-background p-6 text-center">
-          <p className="font-medium">No documents yet</p>
+          <p className="font-medium">{t("No documents yet")}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Snap a photo of your health permit to get started. We&apos;ll remind you before it expires.
+            {t("Snap a photo of your health permit to get started. We'll remind you before it expires.")}
           </p>
           <Link href="/documents/new" className={buttonVariants({ size: "lg", className: "mt-4" })}>
-            <Plus /> Add your first document
+            <Plus /> {t("Add your first document")}
           </Link>
         </div>
       ) : (
@@ -83,12 +86,12 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
               <li key={d.id}>
                 <Link href={`/documents/${d.id}`} className="flex items-center gap-3 p-4 hover:bg-muted/40">
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium">{documentTypeLabel(d.doc_type)}</div>
+                    <div className="font-medium">{t(documentTypeLabel(d.doc_type))}</div>
                     {d.title && <div className="truncate text-sm">{d.title}</div>}
                     <div className="text-sm text-muted-foreground">
                       {d.expiration_date
-                        ? `${days! < 0 ? "Expired" : "Expires"} ${formatDate(d.expiration_date)} (${relativeDays(days!)})`
-                        : "No expiration date"}
+                        ? `${days! < 0 ? t("Expired") : t("Expires")} ${formatDate(d.expiration_date, { lang })} (${relativeDays(days!, lang)})`
+                        : t("No expiration date")}
                     </div>
                   </div>
                   <DocStatusBadge status={status} />
@@ -102,7 +105,7 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
 
       {missing.length > 0 && allDocs.length > 0 && !active && (
         <div className="rounded-xl border border-dashed bg-background p-4">
-          <p className="text-sm font-medium">Commonly required, not added yet:</p>
+          <p className="text-sm font-medium">{t("Commonly required, not added yet:")}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {missing.map((m) => (
               <Link
@@ -110,7 +113,7 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
                 href={`/documents/new?type=${m.key}`}
                 className={buttonVariants({ variant: "outline", size: "sm" })}
               >
-                <Plus /> {m.label}
+                <Plus /> {t(m.label)}
               </Link>
             ))}
           </div>

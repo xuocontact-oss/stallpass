@@ -4,9 +4,11 @@ import { PromoCode } from "@/components/promo-code"
 import { SampleBadge } from "@/components/sample-badge"
 import { reportPartnerSignup } from "@/actions/partners"
 import type { Resource } from "@/lib/types"
+import { getT } from "@/lib/i18n/server"
 
 /** One Start-hub listing. Links go through /go/<id> so partner clicks are counted. */
-export function ResourceCard({ r, page = "start", signedIn = false }: { r: Resource; page?: string; signedIn?: boolean }) {
+export async function ResourceCard({ r, page = "start", signedIn = false }: { r: Resource; page?: string; signedIn?: boolean }) {
+  const t = await getT()
   return (
     <div className={r.is_partner ? "rounded-lg border border-primary/40 bg-background p-3" : "rounded-lg border bg-background p-3"}>
       <div className="flex flex-wrap items-center gap-2">
@@ -19,16 +21,16 @@ export function ResourceCard({ r, page = "start", signedIn = false }: { r: Resou
         )}
         {r.is_official && (
           <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-medium text-sky-800">
-            <BadgeCheck className="size-3" /> Official
+            <BadgeCheck className="size-3" /> {t("Official")}
           </span>
         )}
         {r.is_partner && (
           <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-            <Handshake className="size-3" /> Partner
+            <Handshake className="size-3" /> {t("Partner")}
           </span>
         )}
         {r.is_featured && !r.is_partner && (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-900">Featured</span>
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-900">{t("Featured")}</span>
         )}
         {r.is_sample && <SampleBadge />}
       </div>
@@ -46,17 +48,17 @@ export function ResourceCard({ r, page = "start", signedIn = false }: { r: Resou
         {r.price_note && <span className="font-medium text-foreground">{r.price_note}</span>}
         {(r.url || r.is_partner) && (
           <a href={`/go/${r.id}?from=${page}`} target="_blank" rel="noopener nofollow sponsored" className="inline-flex items-center gap-1 font-medium text-primary">
-            <ExternalLink className="size-3" /> Visit
+            <ExternalLink className="size-3" /> {t("Visit")}
           </a>
         )}
         {r.is_partner && signedIn && (
           <ActionButton size="sm" variant="ghost" className="h-6 px-1.5 text-xs" action={reportPartnerSignup.bind(null, r.id)}>
-            I signed up
+            {t("I signed up")}
           </ActionButton>
         )}
       </div>
       {r.is_partner && (
-        <p className="mt-1.5 text-[11px] text-muted-foreground">Stallpass may earn a commission if you sign up. It doesn&apos;t change your price.</p>
+        <p className="mt-1.5 text-[11px] text-muted-foreground">{t("Stallpass may earn a commission if you sign up. It doesn't change your price.")}</p>
       )}
     </div>
   )

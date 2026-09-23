@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import type { ActionState } from "@/lib/form"
+import { useT } from "@/lib/i18n/client"
 
 type Action = (state: ActionState, formData: FormData) => Promise<ActionState>
 
@@ -25,20 +26,21 @@ export function ActionForm({
 }) {
   const [state, formAction] = useActionState(action, null)
   const formRef = useRef<HTMLFormElement>(null)
+  const { t } = useT()
 
   useEffect(() => {
     if (state?.success) {
-      toast.success(state.success)
+      toast.success(t(state.success))
       if (resetOnSuccess) formRef.current?.reset()
     }
-  }, [state, resetOnSuccess])
+  }, [state, resetOnSuccess, t])
 
   return (
     <form ref={formRef} action={formAction} className={className}>
       {children}
       {state?.error && (
         <p role="alert" className="mt-2 text-sm text-destructive">
-          {state.error}
+          {t(state.error)}
         </p>
       )}
     </form>
@@ -48,13 +50,14 @@ export function ActionForm({
 /** A submit button that shows "Working…" while the action runs. */
 export function SubmitButton({
   children,
-  pendingText = "Working…",
+  pendingText,
   ...props
 }: React.ComponentProps<typeof Button> & { pendingText?: string }) {
   const { pending } = useFormStatus()
+  const { t } = useT()
   return (
     <Button type="submit" disabled={pending || props.disabled} {...props}>
-      {pending ? pendingText : children}
+      {pending ? (pendingText ?? t("Working…")) : children}
     </Button>
   )
 }

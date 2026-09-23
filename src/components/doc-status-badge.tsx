@@ -1,5 +1,8 @@
+"use client"
+
 import { cn } from "@/lib/utils"
 import { STATUS_LABELS, type DocStatus } from "@/lib/documents"
+import { useT } from "@/lib/i18n/client"
 
 const STYLES: Record<DocStatus, string> = {
   valid: "bg-emerald-100 text-emerald-800",
@@ -9,6 +12,7 @@ const STYLES: Record<DocStatus, string> = {
 }
 
 export function DocStatusBadge({ status, className }: { status: DocStatus; className?: string }) {
+  const { t } = useT()
   return (
     <span
       className={cn(
@@ -17,7 +21,7 @@ export function DocStatusBadge({ status, className }: { status: DocStatus; class
         className
       )}
     >
-      {STATUS_LABELS[status]}
+      {t(STATUS_LABELS[status])}
     </span>
   )
 }

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { BellRing, FileCheck2, MapPin, MessageSquareQuote } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 import { getMyVendor, getProfile } from "@/lib/auth"
+import { getT } from "@/lib/i18n/server"
 
 const FEATURES = [
   {
@@ -33,30 +34,30 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const profile = await getProfile()
   if (profile?.is_organizer) redirect("/organizer")
   if (profile?.is_shopper) redirect("/markets")
+  const t = await getT()
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:py-16">
       {deleted && (
-        <p className="mb-6 rounded-lg bg-muted p-3 text-sm">Your account and data have been deleted. Sorry to see you go!</p>
+        <p className="mb-6 rounded-lg bg-muted p-3 text-sm">{t("Your account and data have been deleted. Sorry to see you go!")}</p>
       )}
       <section className="max-w-2xl">
-        <p className="mb-3 text-sm font-semibold text-primary">For pop-up vendors: food trucks, makers, clothing, art & more</p>
+        <p className="mb-3 text-sm font-semibold text-primary">{t("For pop-up vendors: food trucks, makers, clothing, art & more")}</p>
         <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl">
-          Your permits, your markets, your next booth, all in one place.
+          {t("Your permits, your markets, your next booth, all in one place.")}
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Stallpass is free for vendors. Keep your documents ready, find markets worth your time, and
-          apply without filling in the same form again and again.
+          {t("Stallpass is free for vendors. Keep your documents ready, find markets worth your time, and apply without filling in the same form again and again.")}
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link href="/login?next=/onboarding" className={buttonVariants({ size: "lg" })}>
-            Join free as a vendor
+            {t("Join free as a vendor")}
           </Link>
           <Link href="/markets" className={buttonVariants({ size: "lg", variant: "outline" })}>
-            Browse markets
+            {t("Browse markets")}
           </Link>
           <Link href="/start" className={buttonVariants({ size: "lg", variant: "ghost" })}>
-            New? How to get started →
+            {t("New? How to get started →")}
           </Link>
         </div>
       </section>
@@ -65,16 +66,16 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         {FEATURES.map(({ icon: Icon, title, text }) => (
           <div key={title} className="rounded-xl border bg-background p-5">
             <Icon className="size-6 text-primary" aria-hidden />
-            <h2 className="mt-3 font-semibold">{title}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{text}</p>
+            <h2 className="mt-3 font-semibold">{t(title)}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t(text)}</p>
           </div>
         ))}
       </section>
 
       <p className="mt-10 text-sm text-muted-foreground">
-        Run a market?{" "}
+        {t("Run a market?")}{" "}
         <Link href="/organizer/start" className="font-medium text-primary">
-          Get organizer tools, free
+          {t("Get organizer tools, free")}
         </Link>
       </p>
     </main>

@@ -55,7 +55,7 @@ async function recognize(images: (File | HTMLCanvasElement)[], onProgress: (mess
     logger: (m) => {
       if (m.status === "recognizing text") {
         const pageLabel = images.length > 1 ? ` page ${page + 1} of ${images.length},` : ""
-        onProgress(`Reading your menu…${pageLabel} ${Math.round(m.progress * 100)}%`)
+        onProgress(`Reading your menu… ${Math.round(m.progress * 100)}%${pageLabel ? ` (${pageLabel.trim().replace(/,$/, "")})` : ""}`)
       }
     },
   })

@@ -1,93 +1,103 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Globe, X } from "lucide-react"
-import { LANG_COOKIE } from "@/lib/i18n/core"
+import { LANG_COOKIE, type Lang } from "@/lib/i18n/core"
 import { useT } from "@/lib/i18n/client"
+import { cn } from "@/lib/utils"
 
 const YEAR = 60 * 60 * 24 * 365
-const OTHER_COOKIE = "lang_other"
 
-function setCookie(name: string, value: string, maxAge = YEAR) {
-  document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAge}; SameSite=Lax`
-}
-
-/** Opens the language chooser from anywhere (the 🌐 buttons). */
-export function openLanguagePicker() {
-  window.dispatchEvent(new Event("open-language-picker"))
-}
-
-/**
- * First-visit pop-up: English / Español / Other language. "Other" turns on a
- * translator bar (Google's free page translator) for 100+ languages.
- */
-export function LanguagePicker({ hasChosen }: { hasChosen: boolean }) {
+/** Saves the choice and re-renders the page in that language (no reload). */
+function useSetLang() {
   const router = useRouter()
-  const { lang } = useT()
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    if (!hasChosen) setOpen(true)
-    const handler = () => setOpen(true)
-    window.addEventListener("open-language-picker", handler)
-    return () => window.removeEventListener("open-language-picker", handler)
-  }, [hasChosen])
-
-  function choose(choice: "en" | "es" | "other") {
-    setCookie(LANG_COOKIE, choice === "es" ? "es" : "en")
-    setCookie(OTHER_COOKIE, choice === "other" ? "1" : "", choice === "other" ? YEAR : 0)
-    if (choice !== "other") {
-      // Turn the page translator off again if it was on.
-      document.cookie = "googtrans=; Path=/; Max-Age=0"
-      document.cookie = `googtrans=; Path=/; Domain=${location.hostname}; Max-Age=0`
-    }
-    setOpen(false)
-    if (choice === "other" || document.documentElement.classList.contains("translated-ltr")) window.location.reload()
-    else router.refresh()
+  const [pending, startTransition] = useTransition()
+  function setLang(lang: Lang) {
+    document.cookie = `${LANG_COOKIE}=${lang}; Path=/; Max-Age=${YEAR}; SameSite=Lax`
+    // Clear leftovers from the old page-translator option.
+    document.cookie = "lang_other=; Path=/; Max-Age=0"
+    document.cookie = "googtrans=; Path=/; Max-Age=0"
+    startTransition(() => router.refresh())
   }
+  return { setLang, pending }
+}
+
+/** First-visit pop-up: English or Español. */
+export function LanguagePicker({ hasChosen }: { hasChosen: boolean }) {
+  const [open, setOpen] = useState(!hasChosen)
+  const { setLang } = useSetLang()
 
   if (!open) return null
+  const choose = (lang: Lang) => {
+    setLang(lang)
+    setOpen(false)
+  }
   return (
-    <div className="fixed inset-0 z-[2000] flex items-end justify-center bg-black/40 p-4 sm:items-center" role="dialog" aria-modal="true" aria-label="Choose your language">
-      <div className="w-full max-w-sm space-y-3 rounded-2xl bg-background p-5 shadow-xl">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="flex items-center gap-2 text-lg font-bold">
-              <Globe className="size-5 text-primary" aria-hidden /> Language · Idioma
-            </p>
-            <p className="text-sm text-muted-foreground">Choose your language · Elige tu idioma</p>
-          </div>
-          {hasChosen && (
-            <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="p-1 text-muted-foreground">
-              <X className="size-5" />
+    <div
+      className="fixed inset-0 z-[2000] flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Choose your language · Elige tu idioma"
+    >
+      <div className="w-full max-w-sm animate-in rounded-3xl bg-background p-6 text-center shadow-2xl fade-in slide-in-from-bottom-4">
+        <p className="text-xl font-bold">Welcome · Bienvenido</p>
+        <p className="mt-1 text-sm text-muted-foreground">Choose your language · Elige tu idioma</p>
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          {(
+            [
+              ["en", "English", "🇺🇸"],
+              ["es", "Español", "🇲🇽"],
+            ] as const
+          ).map(([code, name, flag]) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => choose(code)}
+              className="group flex flex-col items-center gap-2 rounded-2xl border-2 p-5 transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md active:scale-95"
+            >
+              <span className="text-4xl transition-transform group-hover:scale-110" aria-hidden>
+                {flag}
+              </span>
+              <span className="font-semibold">{name}</span>
             </button>
-          )}
+          ))}
         </div>
-        <button type="button" onClick={() => choose("en")} className="flex w-full items-center justify-between rounded-xl border-2 p-4 text-left font-semibold hover:border-primary aria-[current=true]:border-primary" aria-current={lang === "en"}>
-          English <span aria-hidden>🇺🇸</span>
-        </button>
-        <button type="button" onClick={() => choose("es")} className="flex w-full items-center justify-between rounded-xl border-2 p-4 text-left font-semibold hover:border-primary aria-[current=true]:border-primary" aria-current={lang === "es"}>
-          Español <span aria-hidden>🇲🇽</span>
-        </button>
-        <button type="button" onClick={() => choose("other")} className="flex w-full items-center justify-between rounded-xl border-2 p-4 text-left hover:border-primary">
-          <span>
-            <span className="block font-semibold">Other language</span>
-            <span className="text-xs text-muted-foreground">中文 · 한국어 · Tiếng Việt · Tagalog · Հայերեն · 100+ more</span>
-          </span>
-          <Globe className="size-5 text-muted-foreground" aria-hidden />
-        </button>
+        <p className="mt-4 text-xs text-muted-foreground">You can switch any time at the top · Puedes cambiar arriba cuando quieras</p>
       </div>
     </div>
   )
 }
 
-/** Small 🌐 button that reopens the chooser. */
+/** EN | ES switch for the header, with a sliding highlight. */
 export function LanguageButton({ className }: { className?: string }) {
   const { lang } = useT()
+  const { setLang, pending } = useSetLang()
   return (
-    <button type="button" onClick={openLanguagePicker} className={className} aria-label="Change language">
-      <Globe className="size-4" aria-hidden /> {lang === "es" ? "Español" : "English"}
-    </button>
+    <div
+      role="radiogroup"
+      aria-label="Language · Idioma"
+      className={cn("relative grid h-8 w-[5.5rem] grid-cols-2 rounded-full bg-muted p-0.5 text-xs font-semibold", pending && "opacity-70", className)}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded-full bg-background shadow-sm transition-transform duration-300 ease-out",
+          lang === "es" && "translate-x-full"
+        )}
+      />
+      {(["en", "es"] as const).map((code) => (
+        <button
+          key={code}
+          type="button"
+          role="radio"
+          aria-checked={lang === code}
+          aria-label={code === "en" ? "English" : "Español"}
+          onClick={() => lang !== code && setLang(code)}
+          className={cn("relative z-10 rounded-full transition-colors", lang === code ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+        >
+          {code.toUpperCase()}
+        </button>
+      ))}
+    </div>
   )
 }

@@ -14,6 +14,7 @@ import { documentStatus } from "@/lib/documents"
 import { formatMoney } from "@/lib/markets"
 import { checkReadiness, defaultAttachments } from "@/lib/readiness"
 import type { Market, MarketDate, Resource, VendorDocument } from "@/lib/types"
+import { useT } from "@/lib/i18n/client"
 
 export function ApplyForm({
   market,
@@ -41,6 +42,7 @@ export function ApplyForm({
     []
   )
   const [attached, setAttached] = useState<string[]>(initial)
+  const { t, lang } = useT()
 
   const attachedDocs = docs.filter((d) => attached.includes(d.id))
   const readiness = checkReadiness(market.required_doc_types, attachedDocs, picked, today)
@@ -54,7 +56,7 @@ export function ApplyForm({
       <input type="hidden" name="market_id" value={market.id} />
 
       <section className="space-y-3 rounded-xl border bg-background p-4">
-        <h2 className="font-semibold">1. Which dates?</h2>
+        <h2 className="font-semibold">1. {t("Which dates?")}</h2>
         <div className="grid gap-2 sm:grid-cols-2">
           {dates.map((d) => {
             const taken = takenDates.includes(d.event_date)
@@ -73,9 +75,9 @@ export function ApplyForm({
                   className="size-4 accent-primary"
                 />
                 <span>
-                  <span className="font-medium">{formatDate(d.event_date, { weekday: true })}</span>
+                  <span className="font-medium">{formatDate(d.event_date, { weekday: true, lang })}</span>
                   {d.starts_at && <span className="text-muted-foreground"> · {formatTime(d.starts_at)}</span>}
-                  {taken && <span className="block text-xs">Already applied</span>}
+                  {taken && <span className="block text-xs">{t("Already applied")}</span>}
                 </span>
               </label>
             )
@@ -85,7 +87,7 @@ export function ApplyForm({
 
       {market.booth_fees.length > 0 && (
         <section className="space-y-3 rounded-xl border bg-background p-4">
-          <h2 className="font-semibold">2. Which booth?</h2>
+          <h2 className="font-semibold">2. {t("Which booth?")}</h2>
           <div className="space-y-2">
             {market.booth_fees.map((f, i) => (
               <label
@@ -100,16 +102,16 @@ export function ApplyForm({
               </label>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">You don&apos;t pay anything now. Markets confirm first.</p>
+          <p className="text-xs text-muted-foreground">{t("You don't pay anything now. Markets confirm first.")}</p>
         </section>
       )}
 
       <section className="space-y-3 rounded-xl border bg-background p-4">
-        <h2 className="font-semibold">{market.booth_fees.length > 0 ? "3." : "2."} Documents to send</h2>
+        <h2 className="font-semibold">{market.booth_fees.length > 0 ? "3." : "2."} {t("Documents to send")}</h2>
         {market.required_doc_types.length > 0 && <ReadinessList items={readiness.items} offers={offers} />}
         {docs.length > 0 ? (
           <div className="space-y-2 border-t pt-3">
-            <p className="text-sm text-muted-foreground">Tick what to attach:</p>
+            <p className="text-sm text-muted-foreground">{t("Tick what to attach:")}</p>
             {docs.map((d) => (
               <label key={d.id} className="flex items-center gap-2.5 text-sm">
                 <input
@@ -121,10 +123,10 @@ export function ApplyForm({
                   className="size-4 accent-primary"
                 />
                 <span className="min-w-0 flex-1 truncate">
-                  {documentTypeLabel(d.doc_type)}
+                  {t(documentTypeLabel(d.doc_type))}
                   {d.title && <span className="text-muted-foreground"> · {d.title}</span>}
                   {market.required_doc_types.includes(d.doc_type) && (
-                    <span className="ml-1 text-xs text-primary">required</span>
+                    <span className="ml-1 text-xs text-primary">{t("required")}</span>
                   )}
                 </span>
                 <DocStatusBadge status={documentStatus(d.expiration_date, today)} />
@@ -132,56 +134,52 @@ export function ApplyForm({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">You haven&apos;t added any documents yet.</p>
+          <p className="text-sm text-muted-foreground">{t("You haven't added any documents yet.")}</p>
         )}
       </section>
 
       <section className="space-y-2 rounded-xl border bg-background p-4">
-        <Label htmlFor="note">Note to the market (optional)</Label>
+        <Label htmlFor="note">{t("Note to the market (optional)")}</Label>
         <Textarea
           id="note"
           name="note"
           rows={3}
           maxLength={1000}
-          placeholder="e.g. We've done 40+ markets in LA and bring our own generator."
+          placeholder={t("e.g. We've done 40+ markets in LA and bring our own generator.")}
         />
       </section>
 
       {deadlinePassed && (
         <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
-          The application deadline ({formatDate(market.application_deadline)}) has passed. You can still send
-          it, but the market may not accept late applications.
+          {t("The application deadline ({date}) has passed. You can still send it, but the market may not accept late applications.", { date: formatDate(market.application_deadline, { lang }) })}
         </p>
       )}
 
       {!readiness.ready && (
         <label className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
           <input type="checkbox" name="send_anyway" className="mt-0.5 size-4 accent-primary" />
-          Some required documents are missing or won&apos;t be valid on the event date. Send anyway (the market may
-          turn it down).
+          {t("Some required documents are missing or won't be valid on the event date. Send anyway (the market may turn it down).")}
         </label>
       )}
 
       <p className="flex items-start gap-2 text-sm text-muted-foreground">
         {market.is_claimed ? (
           <>
-            <Send className="mt-0.5 size-4 shrink-0" aria-hidden /> This market is on Stallpass. Your application
-            goes straight to the organizer.
+            <Send className="mt-0.5 size-4 shrink-0" aria-hidden /> {t("This market is on Stallpass. Your application goes straight to the organizer.")}
           </>
         ) : (
           <>
-            <Mail className="mt-0.5 size-4 shrink-0" aria-hidden /> We&apos;ll email your application to the market,
-            with your profile and secure links to the documents you ticked. They can reply to you directly.
+            <Mail className="mt-0.5 size-4 shrink-0" aria-hidden /> {t("We'll email your application to the market, with your profile and secure links to the documents you ticked. They can reply to you directly.")}
           </>
         )}
       </p>
 
       <div className="flex flex-col gap-2 sm:flex-row-reverse">
-        <SubmitButton size="lg" className="sm:flex-1" name="intent" value="send" pendingText="Sending…" disabled={picked.length === 0}>
-          Send application
+        <SubmitButton size="lg" className="sm:flex-1" name="intent" value="send" pendingText={t("Sending…")} disabled={picked.length === 0}>
+          {t("Send application")}
         </SubmitButton>
-        <SubmitButton size="lg" variant="outline" name="intent" value="draft" pendingText="Saving…" disabled={picked.length === 0}>
-          Save as draft
+        <SubmitButton size="lg" variant="outline" name="intent" value="draft" pendingText={t("Saving…")} disabled={picked.length === 0}>
+          {t("Save as draft")}
         </SubmitButton>
       </div>
     </ActionForm>

@@ -1,8 +1,12 @@
+"use client"
+
 import { APPLICATION_STATUSES } from "@/lib/constants"
+import { useT } from "@/lib/i18n/client"
 import { cn } from "@/lib/utils"
 
 export function ApplicationStatusBadge({ status, className }: { status: string; className?: string }) {
   const s = APPLICATION_STATUSES.find((x) => x.key === status)
+  const { t } = useT()
   return (
     <span
       className={cn(
@@ -11,7 +15,7 @@ export function ApplicationStatusBadge({ status, className }: { status: string; 
         className
       )}
     >
-      {s?.label ?? status}
+      {t(s?.label ?? status)}
     </span>
   )
 }

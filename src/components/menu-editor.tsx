@@ -11,6 +11,7 @@ import { readMenuText } from "@/components/menu-reader"
 import { uploadFile } from "@/components/upload"
 import { removeMenuFile, setMenuFile } from "@/actions/vendor"
 import { MAX_MENU_BYTES } from "@/lib/constants"
+import { useT } from "@/lib/i18n/client"
 import { onlyPricedLines, tidyMenuText } from "@/lib/menu-text"
 
 const MAX_MENU_CHARS = 4000
@@ -38,6 +39,7 @@ export function MenuEditor({
   const [checked, setChecked] = useState(false)
   const [pending, startTransition] = useTransition()
   const [reading, setReading] = useState(false)
+  const { t } = useT()
 
   const isPdf = menuFile ? /\.pdf$/i.test(menuFile.name) || /\.pdf$/i.test(menuFile.url) : false
   const busy = pending || reading
@@ -47,21 +49,21 @@ export function MenuEditor({
     e.target.value = ""
     if (!file) return
     startTransition(async () => {
-      setStatus("Uploading…")
+      setStatus(t("Uploading…"))
       const up = await uploadFile("vendor-menus", vendorId, file, MAX_MENU_BYTES, "menu")
       if ("error" in up) {
         setStatus(null)
-        toast.error(up.error)
+        toast.error(t(up.error))
         return
       }
       const result = await setMenuFile(up.path, file.name)
       setStatus(null)
       if (result?.error) {
-        toast.error(result.error)
+        toast.error(t(result.error))
         return
       }
       localFile.current = file
-      toast.success("Menu uploaded. Tap “Read the text” to fill in your written menu.")
+      toast.success(t("Menu uploaded. Tap “Read the text” to fill in your written menu."))
       router.refresh()
     })
   }
@@ -73,13 +75,13 @@ export function MenuEditor({
     try {
       let file = localFile.current
       if (!file) {
-        setStatus("Opening your menu…")
+        setStatus(t("Opening your menu…"))
         const blob = await (await fetch(menuFile.url)).blob()
         file = new File([blob], menuFile.name, { type: blob.type || (isPdf ? "application/pdf" : "image/jpeg") })
       }
-      const text = tidyMenuText(await readMenuText(file, setStatus)).slice(0, MAX_MENU_CHARS)
+      const text = tidyMenuText(await readMenuText(file, (m) => setStatus(t(m.replace(/ \d+%.*$/, "")) + (m.match(/ \d+%.*$/)?.[0] ?? "")))).slice(0, MAX_MENU_CHARS)
       if (!text) {
-        toast.error("We couldn't find any words. Try a clearer, straight-on photo, or type your menu in.")
+        toast.error(t("We couldn't find any words. Try a clearer, straight-on photo, or type your menu in."))
       } else {
         // Always let them review first: it reads EVERYTHING on the page.
         setChecked(false)
@@ -87,7 +89,7 @@ export function MenuEditor({
       }
     } catch (err) {
       console.error("Menu reading failed:", err)
-      toast.error("Couldn't read that file. You can still type your menu in.")
+      toast.error(t("Couldn't read that file. You can still type your menu in."))
     } finally {
       setStatus(null)
       setReading(false)
@@ -95,13 +97,13 @@ export function MenuEditor({
   }
 
   function remove() {
-    if (!window.confirm("Remove the menu file? Your written menu stays.")) return
+    if (!window.confirm(t("Remove the menu file? Your written menu stays."))) return
     startTransition(async () => {
       const result = await removeMenuFile()
-      if (result?.error) toast.error(result.error)
+      if (result?.error) toast.error(t(result.error))
       else {
         localFile.current = null
-        toast.success("Menu file removed.")
+        toast.success(t("Menu file removed."))
         router.refresh()
       }
     })
@@ -112,16 +114,15 @@ export function MenuEditor({
     if (!text || !checked) return
     setMenu(mode === "replace" ? text : `${menu.trim()}\n\n${text}`.slice(0, MAX_MENU_CHARS))
     setFound(null)
-    toast.success("Added to your menu. Tap Save profile to keep it.")
+    toast.success(t("Added to your menu. Tap Save profile to keep it."))
   }
 
   return (
     <div className="space-y-3">
       <div>
-        <Label htmlFor="menu">Menu or product list</Label>
+        <Label htmlFor="menu">{t("Menu or product list")}</Label>
         <p className="text-sm text-muted-foreground">
-          What you sell and your prices. Type it in, or upload a photo or PDF (like your menu or price list) and
-          we&apos;ll read the text for you. The upload is optional.
+          {t("What you sell and your prices. Type it in, or upload a photo or PDF (like your menu or price list) and we'll read the text for you. The upload is optional.")}
         </p>
       </div>
 
@@ -134,18 +135,18 @@ export function MenuEditor({
               </div>
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img loading="lazy" decoding="async" src={menuFile.url} alt="Your menu" className="size-16 rounded-md object-cover" />
+              <img loading="lazy" decoding="async" src={menuFile.url} alt={t("Your menu")} className="size-16 rounded-md object-cover" />
             )}
           </a>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{menuFile.name}</p>
-            <p className="text-xs text-muted-foreground">Markets will see this file with your profile.</p>
+            <p className="text-xs text-muted-foreground">{t("Markets will see this file with your profile.")}</p>
             <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
               <button type="button" onClick={() => inputRef.current?.click()} disabled={busy} className="text-sm font-medium text-primary disabled:opacity-50">
-                Replace
+                {t("Replace")}
               </button>
               <button type="button" onClick={remove} disabled={busy} className="flex items-center gap-1 text-sm font-medium text-destructive disabled:opacity-50">
-                <Trash2 className="size-3.5" /> Remove
+                <Trash2 className="size-3.5" /> {t("Remove")}
               </button>
             </div>
           </div>
@@ -159,8 +160,8 @@ export function MenuEditor({
         >
           <Upload className="size-6 shrink-0 text-primary" aria-hidden />
           <span className="text-sm">
-            <span className="block font-medium">Upload a menu photo or PDF (optional)</span>
-            <span className="text-muted-foreground">JPG, PNG or PDF, up to 10 MB</span>
+            <span className="block font-medium">{t("Upload a menu photo or PDF (optional)")}</span>
+            <span className="text-muted-foreground">{t("JPG, PNG or PDF, up to 10 MB")}</span>
           </span>
         </button>
       )}
@@ -174,7 +175,7 @@ export function MenuEditor({
 
       {menuFile && (
         <Button type="button" variant="outline" className="w-full" onClick={readText} disabled={busy}>
-          <ScanText /> {reading ? "Reading…" : "Read the text from my menu"}
+          <ScanText /> {reading ? t("Reading…") : t("Read the text from my menu")}
         </Button>
       )}
       {status && (
@@ -188,14 +189,12 @@ export function MenuEditor({
           <div className="flex gap-2 rounded-md bg-amber-50 p-2.5 text-sm text-amber-950">
             <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" aria-hidden />
             <p>
-              <span className="font-semibold">Check this before using it.</span> We read{" "}
-              <span className="font-semibold">all</span> the text on your file, including things like your
-              business name, hours, address or phone number. Delete anything that isn&apos;t a menu item, and
-              fix any words or prices we got wrong.
+              <span className="font-semibold">{t("Check this before using it.")}</span>{" "}
+              {t("We read all the text on your file, including things like your business name, hours, address or phone number. Delete anything that isn't a menu item, and fix any words or prices we got wrong.")}
             </p>
           </div>
 
-          <Label htmlFor="found-text">What we read (you can edit it here)</Label>
+          <Label htmlFor="found-text">{t("What we read (you can edit it here)")}</Label>
           <Textarea
             id="found-text"
             rows={8}
@@ -210,11 +209,11 @@ export function MenuEditor({
             variant="outline"
             onClick={() => {
               const priced = onlyPricedLines(found)
-              if (!priced) toast.error("No lines with prices found. Edit the text by hand instead.")
+              if (!priced) toast.error(t("No lines with prices found. Edit the text by hand instead."))
               else setFound(priced)
             }}
           >
-            Keep only lines with a price
+            {t("Keep only lines with a price")}
           </Button>
 
           <label className="flex items-start gap-2 text-sm">
@@ -224,26 +223,26 @@ export function MenuEditor({
               onChange={(e) => setChecked(e.target.checked)}
               className="mt-0.5 size-4 accent-primary"
             />
-            I&apos;ve checked this and removed anything that isn&apos;t a menu item.
+            {t("I've checked this and removed anything that isn't a menu item.")}
           </label>
 
           <div className="flex flex-wrap gap-2">
             {menu.trim() ? (
               <>
                 <Button type="button" size="sm" disabled={!checked} onClick={() => applyFound("replace")}>
-                  Replace my menu
+                  {t("Replace my menu")}
                 </Button>
                 <Button type="button" size="sm" variant="outline" disabled={!checked} onClick={() => applyFound("add")}>
-                  Add below my menu
+                  {t("Add below my menu")}
                 </Button>
               </>
             ) : (
               <Button type="button" size="sm" disabled={!checked} onClick={() => applyFound("replace")}>
-                Use this as my menu
+                {t("Use this as my menu")}
               </Button>
             )}
             <Button type="button" size="sm" variant="ghost" onClick={() => setFound(null)}>
-              Cancel
+              {t("Cancel")}
             </Button>
           </div>
         </div>
@@ -259,7 +258,7 @@ export function MenuEditor({
         placeholder={"Carne asada taco – $4\nAl pastor taco – $4\nHorchata – $5"}
       />
       <p className="text-xs text-muted-foreground">
-        Text reading isn&apos;t perfect, so check the menu over. Changes are saved when you tap Save profile.
+        {t("Text reading isn't perfect, so check the menu over. Changes are saved when you tap Save profile.")}
       </p>
     </div>
   )

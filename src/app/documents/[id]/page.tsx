@@ -7,6 +7,7 @@ import { DocumentForm } from "@/components/document-form"
 import { buttonVariants } from "@/components/ui/button"
 import { deleteDocument } from "@/actions/documents"
 import { requireVendor } from "@/lib/auth"
+import { getT } from "@/lib/i18n/server"
 import { documentTypeLabel } from "@/lib/constants"
 import { todayISO } from "@/lib/dates"
 import { documentStatus } from "@/lib/documents"
@@ -27,15 +28,16 @@ export default async function DocumentPage({ params }: PageProps<"/documents/[id
     .maybeSingle()
   if (!data) notFound()
   const doc = data as VendorDocument
+  const t = await getT()
 
   return (
     <main className="mx-auto w-full max-w-lg space-y-5 px-4 py-6">
       <Link href="/documents" className="text-sm text-muted-foreground">
-        ← Documents
+        ← {t("Documents")}
       </Link>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold">{documentTypeLabel(doc.doc_type)}</h1>
+          <h1 className="text-2xl font-bold">{t(documentTypeLabel(doc.doc_type))}</h1>
           {doc.title && <p className="text-muted-foreground">{doc.title}</p>}
         </div>
         <DocStatusBadge status={documentStatus(doc.expiration_date, todayISO())} className="mt-1.5" />
@@ -47,11 +49,11 @@ export default async function DocumentPage({ params }: PageProps<"/documents/[id
         rel="noopener"
         className={buttonVariants({ variant: "outline", size: "lg", className: "w-full" })}
       >
-        <ExternalLink /> Open {doc.file_name}
+        <ExternalLink /> {t("Open")} {doc.file_name}
       </a>
 
       <div className="rounded-xl border bg-background p-4">
-        <h2 className="mb-4 font-semibold">Edit or renew</h2>
+        <h2 className="mb-4 font-semibold">{t("Edit or renew")}</h2>
         <DocumentForm vendorId={vendor.id} document={doc} />
       </div>
 
@@ -59,10 +61,10 @@ export default async function DocumentPage({ params }: PageProps<"/documents/[id
         variant="destructive"
         className="w-full"
         action={deleteDocument.bind(null, doc.id)}
-        confirmText="Delete this document and its file? This can't be undone."
+        confirmText={t("Delete this document and its file? This can't be undone.")}
         redirectTo="/documents"
       >
-        <Trash2 /> Delete document
+        <Trash2 /> {t("Delete document")}
       </ConfirmButton>
     </main>
   )

@@ -13,6 +13,7 @@ import { documentTypeLabel } from "@/lib/constants"
 import { formatDate, todayISO } from "@/lib/dates"
 import { formatMoney } from "@/lib/markets"
 import { createAdminClient, createClient } from "@/lib/supabase/server"
+import { getLang, getT } from "@/lib/i18n/server"
 import type { Application, ApplicationDocument, Market, Payment, Review } from "@/lib/types"
 
 export const metadata = { title: "Application" }
@@ -71,25 +72,28 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
   const pastDates = app.event_dates.filter((d) => d <= today)
   const canReport = !market.is_claimed && ["submitted", "accepted", "waitlisted", "declined", "paid"].includes(app.status)
   const shareActive = app.share_token && app.share_expires_at && new Date(app.share_expires_at) > new Date()
+  const t = await getT()
+  const lang = await getLang()
+  const fd = (d: string, weekday = false) => formatDate(d, { weekday, lang })
 
   return (
     <main className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6">
       <Link href="/applications" className="text-sm text-muted-foreground">
-        ← Applications
+        ← {t("Applications")}
       </Link>
 
       {notice && (
         <p className={notice.tone === "good" ? "rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900" : "rounded-lg bg-amber-50 p-3 text-sm text-amber-950"}>
-          {notice.text}
+          {t(notice.text)}
         </p>
       )}
-      {reviewed && <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Thanks! Your review is live.</p>}
+      {reviewed && <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">{t("Thanks! Your review is live.")}</p>}
       {typeof reported === "string" && (
-        <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Sales report sent. Thanks!</p>
+        <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">{t("Sales report sent. Thanks!")}</p>
       )}
-      {payment === "success" && <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Payment received! We emailed your receipt.</p>}
-      {payment === "processing" && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">Your payment is processing. We&apos;ll update this page when Stripe confirms it.</p>}
-      {payment === "cancelled" && <p className="rounded-lg bg-muted p-3 text-sm">Payment cancelled. Nothing was charged.</p>}
+      {payment === "success" && <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">{t("Payment received! We emailed your receipt.")}</p>}
+      {payment === "processing" && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">{t("Your payment is processing. We'll update this page when Stripe confirms it.")}</p>}
+      {payment === "cancelled" && <p className="rounded-lg bg-muted p-3 text-sm">{t("Payment cancelled. Nothing was charged.")}</p>}
 
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -103,38 +107,38 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
 
       <section className="space-y-2 rounded-xl border bg-background p-4 text-sm">
         <p>
-          <span className="text-muted-foreground">Dates: </span>
-          {app.event_dates.map((d) => formatDate(d, { weekday: true })).join(", ")}
+          <span className="text-muted-foreground">{t("Dates:")} </span>
+          {app.event_dates.map((d) => fd(d, true)).join(", ")}
         </p>
         {app.booth_choice && (
           <p>
-            <span className="text-muted-foreground">Booth: </span>
+            <span className="text-muted-foreground">{t("Booth:")} </span>
             {app.booth_choice}
           </p>
         )}
         {app.booth_number && (
           <p>
-            <span className="text-muted-foreground">Your booth number: </span>
+            <span className="text-muted-foreground">{t("Your booth number:")} </span>
             <span className="font-semibold">{app.booth_number}</span>
           </p>
         )}
-        {app.note && <p className="whitespace-pre-line"><span className="text-muted-foreground">Your note: </span>{app.note}</p>}
+        {app.note && <p className="whitespace-pre-line"><span className="text-muted-foreground">{t("Your note:")} </span>{app.note}</p>}
         {app.organizer_note && (
           <p className="rounded-lg bg-secondary p-3 whitespace-pre-line">
-            <span className="font-medium">From the organizer: </span>
+            <span className="font-medium">{t("From the organizer:")} </span>
             {app.organizer_note}
           </p>
         )}
         <p className="text-muted-foreground">
-          {app.status === "draft" && "Draft, not sent yet."}
-          {app.delivered_via === "platform" && `Sent to the organizer on Stallpass ${app.submitted_at ? formatDate(app.submitted_at.slice(0, 10)) : ""}.`}
+          {app.status === "draft" && t("Draft, not sent yet.")}
+          {app.delivered_via === "platform" && `${t("Sent to the organizer on Stallpass")} ${app.submitted_at ? fd(app.submitted_at.slice(0, 10)) : ""}.`}
           {app.delivered_via === "email" &&
-            (app.emailed_at ? `Emailed to the market ${formatDate(app.emailed_at.slice(0, 10))}.` : "The email hasn't gone through yet.")}
-          {app.delivered_via === "not_sent" && "Not sent: no email address on file for this market."}
+            (app.emailed_at ? `${t("Emailed to the market")} ${fd(app.emailed_at.slice(0, 10))}.` : t("The email hasn't gone through yet."))}
+          {app.delivered_via === "not_sent" && t("Not sent: no email address on file for this market.")}
         </p>
         {shareActive && (
           <a href={`/a/${app.share_token}`} target="_blank" rel="noopener" className="inline-flex items-center gap-1 font-medium text-primary">
-            <ExternalLink className="size-4" /> See what the market sees
+            <ExternalLink className="size-4" /> {t("See what the market sees")}
           </a>
         )}
       </section>
@@ -143,26 +147,26 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
 
       {app.status === "draft" && (
         <div className="flex gap-2">
-          <ActionButton action={sendApplication.bind(null, app.id)} size="lg" className="flex-1" pendingText="Sending…">
-            Send now
+          <ActionButton action={sendApplication.bind(null, app.id)} size="lg" className="flex-1" pendingText={t("Sending…")}>
+            {t("Send now")}
           </ActionButton>
-          <ConfirmButton variant="outline" size="lg" action={deleteDraft.bind(null, app.id)} confirmText="Delete this draft?" redirectTo="/applications">
-            Delete
+          <ConfirmButton variant="outline" size="lg" action={deleteDraft.bind(null, app.id)} confirmText={t("Delete this draft?")} redirectTo="/applications">
+            {t("Delete")}
           </ConfirmButton>
         </div>
       )}
       {app.status === "submitted" && app.delivered_via === "email" && !app.emailed_at && (
-        <ActionButton action={sendApplication.bind(null, app.id)} size="lg" className="w-full" pendingText="Sending…">
-          Send again
+        <ActionButton action={sendApplication.bind(null, app.id)} size="lg" className="w-full" pendingText={t("Sending…")}>
+          {t("Send again")}
         </ActionButton>
       )}
 
       {canReport && (
         <section className="space-y-3 rounded-xl border bg-background p-4">
           <div>
-            <h2 className="font-semibold">What did the market say?</h2>
+            <h2 className="font-semibold">{t("What did the market say?")}</h2>
             <p className="text-sm text-muted-foreground">
-              This market isn&apos;t on Stallpass yet, so keep track here when they reply.
+              {t("This market isn't on Stallpass yet, so keep track here when they reply.")}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -173,7 +177,7 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
                 action={setApplicationStatus.bind(null, app.id, s)}
                 disabled={app.status === s}
               >
-                {s === "accepted" ? "Accepted" : s === "waitlisted" ? "Waitlisted" : "Declined"}
+                {s === "accepted" ? t("Accepted") : s === "waitlisted" ? t("Waitlisted") : t("Declined")}
               </ActionButton>
             ))}
           </div>
@@ -183,12 +187,12 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
               className="w-full"
               action={setApplicationStatus.bind(null, app.id, app.status === "paid" ? "accepted" : "paid")}
             >
-              {app.status === "paid" ? "✓ Booth fee paid (tap to undo)" : "I've paid the booth fee"}
+              {app.status === "paid" ? t("✓ Booth fee paid (tap to undo)") : t("I've paid the booth fee")}
             </ActionButton>
           )}
           {app.status === "accepted" && app.status_source === "vendor" && !app.verified_at && (
             <p className="text-sm text-muted-foreground">
-              Nice! Stallpass will confirm your acceptance so you can review this market after the event.
+              {t("Nice! Stallpass will confirm your acceptance so you can review this market after the event.")}
             </p>
           )}
         </section>
@@ -196,14 +200,14 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
 
       {attached.length > 0 && (
         <section className="rounded-xl border bg-background p-4">
-          <h2 className="mb-2 font-semibold">Documents sent</h2>
+          <h2 className="mb-2 font-semibold">{t("Documents sent")}</h2>
           <ul className="space-y-1.5">
             {attached.map((d) => (
               <li key={d.id}>
                 <a href={`/applications/${app.id}/documents/${d.id}`} target="_blank" rel="noopener" className="flex items-center gap-2 text-sm hover:underline">
                   <FileText className="size-4 text-muted-foreground" aria-hidden />
-                  {documentTypeLabel(d.doc_type)}
-                  {d.expiration_date && <span className="text-muted-foreground">· valid until {formatDate(d.expiration_date)}</span>}
+                  {t(documentTypeLabel(d.doc_type))}
+                  {d.expiration_date && <span className="text-muted-foreground">· {t("valid until {date}", { date: fd(d.expiration_date) })}</span>}
                 </a>
               </li>
             ))}
@@ -214,25 +218,25 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
       {pastDates.length > 0 && ["accepted", "paid"].includes(app.status) && (
         <section className="space-y-3 rounded-xl border bg-background p-4">
           <div>
-            <h2 className="font-semibold">Sales reports</h2>
+            <h2 className="font-semibold">{t("Sales reports")}</h2>
             <p className="text-sm text-muted-foreground">
               {market.sales_reporting === "required"
-                ? "This market asks every vendor to report sales."
-                : "Track how each day went. Only you and the market see it."}
+                ? t("This market asks every vendor to report sales.")
+                : t("Track how each day went. Only you and the market see it.")}
             </p>
           </div>
           <ul className="space-y-2">
             {pastDates.map((d) => (
               <li key={d} className="flex items-center justify-between gap-2 text-sm">
-                <span>{formatDate(d, { weekday: true })}</span>
+                <span>{fd(d, true)}</span>
                 {salesByDate.has(d) ? (
                   <Link href={`/applications/${app.id}/sales?date=${d}`} className="flex items-center gap-2">
                     <span className="font-semibold">{formatMoney(salesByDate.get(d)!)}</span>
-                    <span className="font-medium text-primary">Edit</span>
+                    <span className="font-medium text-primary">{t("Edit")}</span>
                   </Link>
                 ) : (
                   <Link href={`/applications/${app.id}/sales?date=${d}`} className={buttonVariants({ size: "sm" })}>
-                    Report sales
+                    {t("Report sales")}
                   </Link>
                 )}
               </li>
@@ -244,12 +248,11 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
       {pastDates.length > 0 && ["accepted", "paid"].includes(app.status) && (
         <section className="space-y-3 rounded-xl border bg-background p-4">
           <h2 className="flex items-center gap-2 font-semibold">
-            <Star className="size-5 text-amber-400" aria-hidden /> Review this market
+            <Star className="size-5 text-amber-400" aria-hidden /> {t("Review this market")}
           </h2>
           {!confirmedAccepted ? (
             <p className="text-sm text-muted-foreground">
-              You can review once your acceptance is confirmed. This keeps reviews honest: only vendors who really worked
-              the market can post.
+              {t("You can review once your acceptance is confirmed. This keeps reviews honest: only vendors who really worked the market can post.")}
             </p>
           ) : (
             <ul className="space-y-2">
@@ -257,16 +260,16 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
                 const review = myReviews.find((r) => r.event_date === d)
                 return (
                   <li key={d} className="flex items-center justify-between gap-2 text-sm">
-                    <span>{formatDate(d, { weekday: true })}</span>
+                    <span>{fd(d, true)}</span>
                     {review ? (
                       <Link href={`/applications/${app.id}/review?date=${d}`} className="flex items-center gap-2">
                         <CheckCircle2 className="size-4 text-emerald-600" aria-hidden />
                         <Stars value={review.rating_overall} />
-                        <span className="font-medium text-primary">Edit</span>
+                        <span className="font-medium text-primary">{t("Edit")}</span>
                       </Link>
                     ) : (
                       <Link href={`/applications/${app.id}/review?date=${d}`} className={buttonVariants({ size: "sm" })}>
-                        Write a review
+                        {t("Write a review")}
                       </Link>
                     )}
                   </li>
@@ -276,7 +279,7 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
           )}
           {myReviews.some((r) => r.is_hidden) && (
             <p className="text-sm text-destructive">
-              One of your reviews was hidden by Stallpass
+              {t("One of your reviews was hidden by Stallpass")}
               {myReviews.find((r) => r.is_hidden)?.hidden_reason ? `: ${myReviews.find((r) => r.is_hidden)?.hidden_reason}` : "."}
             </p>
           )}
@@ -288,9 +291,9 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
           variant="ghost"
           className="w-full text-destructive"
           action={setApplicationStatus.bind(null, app.id, "cancelled")}
-          confirmText={`Cancel your application to ${market.name}? ${market.is_claimed ? "The organizer will see it's cancelled." : "Also let the market know by replying to their email."}`}
+          confirmText={`${t("Cancel your application to {market}?", { market: market.name })} ${market.is_claimed ? t("The organizer will see it's cancelled.") : t("Also let the market know by replying to their email.")}`}
         >
-          Cancel application
+          {t("Cancel application")}
         </ConfirmButton>
       )}
     </main>

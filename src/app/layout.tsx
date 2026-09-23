@@ -5,7 +5,6 @@ import { BottomSpacer, SiteHeader } from "@/components/site-header"
 import { Toaster } from "@/components/ui/sonner"
 import { cookies } from "next/headers"
 import { LanguagePicker } from "@/components/language-picker"
-import { PageTranslator } from "@/components/page-translator"
 import { LANG_COOKIE } from "@/lib/i18n/core"
 import { LangProvider } from "@/lib/i18n/client"
 import { getLang } from "@/lib/i18n/server"
@@ -30,12 +29,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const lang = await getLang()
   const jar = await cookies()
   const hasChosen = jar.has(LANG_COOKIE)
-  const otherLanguage = jar.get("lang_other")?.value === "1"
   return (
     <html lang={lang} className={`${geistSans.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-muted/40">
         <LangProvider lang={lang}>
-          {otherLanguage && <PageTranslator />}
           <SiteHeader />
           <div className="flex flex-1 flex-col">{children}</div>
           <SiteFooter />

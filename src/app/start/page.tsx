@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server"
 import type { Resource } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { getMyDocuments } from "@/lib/vendor-data"
+import { getT } from "@/lib/i18n/server"
 
 export const metadata = {
   title: "Start selling at LA markets",
@@ -40,9 +41,10 @@ export default async function StartPage({ searchParams }: PageProps<"/start">) {
     }
   }
 
+  const t = await getT()
   const track =
-    TRACKS.find((t) => t.key === trackParam) ??
-    (vendor ? TRACKS.find((t) => t.key === suggestedTrack(vendor.category, vendor.setup_type)) : undefined)
+    TRACKS.find((tr) => tr.key === trackParam) ??
+    (vendor ? TRACKS.find((tr) => tr.key === suggestedTrack(vendor.category, vendor.setup_type)) : undefined)
   const steps = track ? trackSteps(track) : []
   const docSteps = steps.filter((s) => s.docType)
   const done = new Set(docSteps.filter((s) => have.has(s.docType!)).map((s) => s.docType)).size
@@ -53,29 +55,28 @@ export default async function StartPage({ searchParams }: PageProps<"/start">) {
   return (
     <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6">
       <div>
-        <p className="text-sm font-medium text-primary">New to markets?</p>
-        <h1 className="text-2xl font-bold sm:text-3xl">Start selling at LA markets</h1>
+        <p className="text-sm font-medium text-primary">{t("New to markets?")}</p>
+        <h1 className="text-2xl font-bold sm:text-3xl">{t("Start selling at LA markets")}</h1>
         <p className="mt-1 text-muted-foreground">
-          Food, clothing, crafts, art or anything else: here&apos;s exactly what you need, in order, with links to get
-          it done.
+          {t("Food, clothing, crafts, art or anything else: here's exactly what you need, in order, with links to get it done.")}
         </p>
       </div>
 
       <section className="space-y-2">
-        <h2 className="font-semibold">What will you sell?</h2>
+        <h2 className="font-semibold">{t("What will you sell?")}</h2>
         <div className="grid gap-2 sm:grid-cols-2">
-          {TRACKS.map((t) => (
+          {TRACKS.map((tr) => (
             <Link
-              key={t.key}
-              href={`/start?track=${t.key}#steps`}
+              key={tr.key}
+              href={`/start?track=${tr.key}#steps`}
               scroll={false}
               className={cn(
                 "rounded-xl border bg-background p-3 transition-colors",
-                track?.key === t.key ? "border-primary bg-secondary ring-1 ring-primary" : "hover:border-primary/50"
+                track?.key === tr.key ? "border-primary bg-secondary ring-1 ring-primary" : "hover:border-primary/50"
               )}
             >
-              <span className="block font-semibold">{t.label}</span>
-              <span className="block text-sm text-muted-foreground">{t.examples}</span>
+              <span className="block font-semibold">{t(tr.label)}</span>
+              <span className="block text-sm text-muted-foreground">{t(tr.examples)}</span>
             </Link>
           ))}
         </div>
@@ -84,14 +85,14 @@ export default async function StartPage({ searchParams }: PageProps<"/start">) {
       {track && (
         <section id="steps" className="scroll-mt-20 space-y-3">
           <div className="flex flex-wrap items-end justify-between gap-2">
-            <h2 className="text-lg font-semibold">Your steps: {track.label.toLowerCase()}</h2>
+            <h2 className="text-lg font-semibold">{t("Your steps:")} {t(track.label).toLowerCase()}</h2>
             {vendor ? (
               <span className="text-sm text-muted-foreground">
-                {done} of {docTotal} documents uploaded
+                {t("{done} of {total} documents uploaded", { done, total: docTotal })}
               </span>
             ) : (
               <Link href={`/login?next=${encodeURIComponent(`/start?track=${track.key}`)}`} className="text-sm font-medium text-primary">
-                Join free to track your progress
+                {t("Join free to track your progress")}
               </Link>
             )}
           </div>
@@ -111,13 +112,13 @@ export default async function StartPage({ searchParams }: PageProps<"/start">) {
                   <details className="group rounded-xl border bg-background" open={!isDone && i < 2}>
                     <summary className="flex cursor-pointer list-none items-start gap-3 p-4">
                       {isDone ? (
-                        <CheckCircle2 className="mt-0.5 size-6 shrink-0 text-emerald-600" aria-label="Done" />
+                        <CheckCircle2 className="mt-0.5 size-6 shrink-0 text-emerald-600" aria-label={t("Done")} />
                       ) : (
                         <span className="grid size-6 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold">{i + 1}</span>
                       )}
                       <span className="min-w-0 flex-1">
-                        <span className="block font-semibold">{step.title}</span>
-                        <span className="text-sm text-muted-foreground">{step.summary}</span>
+                        <span className="block font-semibold">{t(step.title)}</span>
+                        <span className="text-sm text-muted-foreground">{t(step.summary)}</span>
                       </span>
                       <ChevronDown className="mt-1 size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
                     </summary>
@@ -126,7 +127,7 @@ export default async function StartPage({ searchParams }: PageProps<"/start">) {
                         {step.details.map((d) => (
                           <li key={d} className="flex gap-2">
                             <Circle className="mt-1.5 size-2 shrink-0 fill-current text-muted-foreground" aria-hidden />
-                            {d}
+                            {t(d)}
                           </li>
                         ))}
                       </ul>
@@ -139,7 +140,7 @@ export default async function StartPage({ searchParams }: PageProps<"/start">) {
                       )}
                       {showKitchens && kitchens.length > 0 && (
                         <a href="#kitchens" className="inline-block text-sm font-medium text-primary">
-                          See {kitchens.length} shared kitchens below ↓
+                          {t("See {n} shared kitchens below ↓", { n: kitchens.length })}
                         </a>
                       )}
                       {step.docType && vendor && (
@@ -147,7 +148,9 @@ export default async function StartPage({ searchParams }: PageProps<"/start">) {
                           href={isDone ? "/documents" : `/documents/new?type=${step.docType}`}
                           className={buttonVariants({ variant: isDone ? "outline" : "default", size: "sm" })}
                         >
-                          {isDone ? `${documentTypeLabel(step.docType)} uploaded ✓` : `Upload your ${documentTypeLabel(step.docType).toLowerCase()}`}
+                          {isDone
+                            ? t("{doc} uploaded ✓", { doc: t(documentTypeLabel(step.docType)) })
+                            : t("Upload your {doc}", { doc: t(documentTypeLabel(step.docType)).toLowerCase() })}
                         </Link>
                       )}
                     </div>
@@ -161,14 +164,14 @@ export default async function StartPage({ searchParams }: PageProps<"/start">) {
 
       {!track && (
         <p className="rounded-xl border border-dashed bg-background p-4 text-sm text-muted-foreground">
-          Pick what you&apos;ll sell above to see your step-by-step list.
+          {t("Pick what you'll sell above to see your step-by-step list.")}
         </p>
       )}
 
       {track && ["prepared", "truck", "packaged"].includes(track.key) && kitchens.length > 0 && (
         <section id="kitchens" className="scroll-mt-20 space-y-2">
-          <h2 className="text-lg font-semibold">{RESOURCE_CATEGORY_LABELS.kitchen}</h2>
-          <p className="text-sm text-muted-foreground">Rent prep space by the hour or day, or a commissary for your truck.</p>
+          <h2 className="text-lg font-semibold">{t(RESOURCE_CATEGORY_LABELS.kitchen)}</h2>
+          <p className="text-sm text-muted-foreground">{t("Rent prep space by the hour or day, or a commissary for your truck.")}</p>
           <div className="grid gap-2 sm:grid-cols-2">
             {kitchens.map((r) => (
               <ResourceCard key={r.id} r={r} signedIn={Boolean(vendor)} />
@@ -180,14 +183,14 @@ export default async function StartPage({ searchParams }: PageProps<"/start">) {
       {COMMON_SECTIONS.map((section) => (
         <details key={section.key} className="group rounded-xl border bg-background" open={section.key === "kit"}>
           <summary className="flex cursor-pointer list-none items-center justify-between p-4 font-semibold">
-            {section.title}
+            {t(section.title)}
             <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
           </summary>
           <ul className="space-y-1.5 border-t px-4 pt-3 pb-4 text-sm">
             {section.items.map((item) => (
               <li key={item} className="flex gap-2">
                 <Circle className="mt-1.5 size-2 shrink-0 fill-current text-muted-foreground" aria-hidden />
-                {item}
+                {t(item)}
               </li>
             ))}
           </ul>
@@ -202,33 +205,32 @@ export default async function StartPage({ searchParams }: PageProps<"/start">) {
       ))}
 
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Common questions</h2>
+        <h2 className="text-lg font-semibold">{t("Common questions")}</h2>
         {FAQ.map((f) => (
           <details key={f.q} className="group rounded-xl border bg-background">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 font-medium">
-              {f.q}
+              {t(f.q)}
               <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
             </summary>
-            <p className="border-t px-4 pt-3 pb-4 text-sm">{f.a}</p>
+            <p className="border-t px-4 pt-3 pb-4 text-sm">{t(f.a)}</p>
           </details>
         ))}
       </section>
 
       <div className="rounded-xl bg-secondary p-4 text-sm">
-        <p className="font-semibold">Ready?</p>
+        <p className="font-semibold">{t("Ready?")}</p>
         <p className="mt-1">
           {vendor
-            ? "Upload each document as you get it, then find a market and tap Quick apply."
-            : "Join free: keep your permits in one place, get reminders before they expire, and apply to markets in a couple of taps."}
+            ? t("Upload each document as you get it, then find a market and tap Quick apply.")
+            : t("Join free: keep your permits in one place, get reminders before they expire, and apply to markets in a couple of taps.")}
         </p>
         <Link href={vendor ? "/markets" : "/login?next=/start"} className={buttonVariants({ size: "sm", className: "mt-3" })}>
-          {vendor ? "Find markets" : "Join free"}
+          {vendor ? t("Find markets") : t("Join free")}
         </Link>
       </div>
 
       <p className="text-xs text-muted-foreground">
-        General information for the LA area, not legal advice. Rules differ by city and change, so confirm with the agency
-        before you apply. Stallpass doesn&apos;t endorse listed businesses; partners are labeled.
+        {t("General information for the LA area, not legal advice. Rules differ by city and change, so confirm with the agency before you apply. Stallpass doesn't endorse listed businesses; partners are labeled.")}
       </p>
     </main>
   )
