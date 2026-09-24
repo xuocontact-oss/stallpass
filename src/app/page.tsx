@@ -112,7 +112,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               </li>
               <li className="flex justify-between">
                 <span>{t("Insurance")}</span>
-                <span className="font-bold text-primary">{t("5 days left").toUpperCase()}</span>
+                <span className="font-bold text-destructive">{t("5 days left").toUpperCase()}</span>
               </li>
             </ul>
           </div>

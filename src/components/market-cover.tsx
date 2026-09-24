@@ -19,12 +19,12 @@ import { cn } from "@/lib/utils"
 const STRIPES: Record<string, { a: string; b: string }> = {
   farmers: { a: "#2f6b3a", b: "#e3eedf" },
   night: { a: "#1b1a17", b: "#3a3830" },
-  food_truck: { a: "#c7402b", b: "#f9e3de" },
+  food_truck: { a: "#1d4ed8", b: "#e0e8fb" },
   popup: { a: "#f2c94c", b: "#fff6da" },
-  festival: { a: "#c7402b", b: "#fff6da" },
+  festival: { a: "#e0006f", b: "#ffe3f0" },
   craft: { a: "#1f6f78", b: "#dcefef" },
   flea: { a: "#8a5a2b", b: "#f3e6d6" },
-  other: { a: "#c7402b", b: "#f4eee2" },
+  other: { a: "#1f6b3f", b: "#f3f6ef" },
 }
 
 const PHOTOS: Record<string, StaticImageData[]> = {

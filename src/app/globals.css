@@ -53,29 +53,29 @@
 }
 
 :root {
-  /* "Market poster" look: cream paper, black ink, tomato red, leaf green, sunny yellow. */
-  --paper: #f4eee2;
+  /* "Market poster" look: fresh paper, black ink, market green, sunny yellow. */
+  --paper: #f3f6ef;
   --ink: #1b1a17;
-  --leaf: #2f6b3a;
-  --sun: #f2c94c;
+  --leaf: #1f6b3f;
+  --sun: #ffce3a;
   --background: #ffffff;
   --foreground: #1b1a17;
   --card: #ffffff;
   --card-foreground: #1b1a17;
   --popover: #ffffff;
   --popover-foreground: #1b1a17;
-  --primary: #c7402b;
+  --primary: #1f6b3f;
   --primary-foreground: #ffffff;
-  --secondary: #fbf3de;
+  --secondary: #eef7d9;
   --secondary-foreground: #1b1a17;
-  --muted: #efe8da;
-  --muted-foreground: #5e594f;
-  --accent: #fbf3de;
+  --muted: #e3eadb;
+  --muted-foreground: #525a4e;
+  --accent: #eef7d9;
   --accent-foreground: #1b1a17;
   --destructive: #b3261e;
   --border: #1b1a17;
   --input: #1b1a17;
-  --ring: #c7402b;
+  --ring: #1f6b3f;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -153,7 +153,7 @@
 @utility poster-shadow-sm {
   box-shadow: 2px 2px 0 var(--ink);
 }
-/* Red-and-cream market awning stripes. */
+/* Green-and-white market awning stripes. */
 @utility awning {
   background: repeating-linear-gradient(90deg, var(--primary) 0 40px, var(--paper) 40px 80px);
 }

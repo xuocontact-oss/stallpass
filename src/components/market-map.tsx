@@ -47,7 +47,7 @@ export default function MarketMap({
           key={p.slug}
           center={[p.lat, p.lng]}
           radius={10}
-          pathOptions={{ color: "#ffffff", weight: 2, fillColor: "#c7402b", fillOpacity: 1 }}
+          pathOptions={{ color: "#ffffff", weight: 2, fillColor: "#1f6b3f", fillOpacity: 1 }}
         >
           <Popup>
             <Link href={`/markets/${p.slug}`} className="font-semibold">

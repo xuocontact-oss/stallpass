@@ -10,7 +10,7 @@ export default function OpengraphImage() {
     (
       <div style={{ width: "100%", height: "100%", background: "#fbf6f2", display: "flex", flexDirection: "column", justifyContent: "center", padding: 80 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div style={{ width: 80, height: 80, borderRadius: 18, background: "#c7402b", color: "white", fontSize: 52, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>S</div>
+          <div style={{ width: 80, height: 80, borderRadius: 18, background: "#1f6b3f", color: "white", fontSize: 52, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>S</div>
           <div style={{ fontSize: 56, fontWeight: 800, color: "#1c1917" }}>Stallpass</div>
         </div>
         <div style={{ marginTop: 40, fontSize: 64, fontWeight: 800, color: "#1c1917", lineHeight: 1.1, maxWidth: 1000 }}>
