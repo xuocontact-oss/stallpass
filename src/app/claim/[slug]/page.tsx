@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { submitClaim } from "@/actions/organizer"
-import { getUser } from "@/lib/auth"
+import { getProfile, getUser } from "@/lib/auth"
+import { VerifyEmailBox } from "@/components/verify-email-box"
 import { todayISO } from "@/lib/dates"
 import { getMarketBySlug, MIN_VENDOR_COUNT_SHOWN, vendorCountFor } from "@/lib/market-data"
 import { createClient } from "@/lib/supabase/server"
@@ -29,6 +30,7 @@ export default async function ClaimPage({ params }: PageProps<"/claim/[slug]">) 
   const { market } = data
   const user = await getUser()
   const vendorCount = await vendorCountFor(market.id)
+  const profile = await getProfile()
 
   let existing: { status: string } | null = null
   if (user) {
@@ -82,6 +84,8 @@ export default async function ClaimPage({ params }: PageProps<"/claim/[slug]">) 
           We&apos;re checking your claim. We&apos;ll email you once it&apos;s approved.{" "}
           <Link href="/organizer" className="font-medium">See your claims</Link>
         </p>
+      ) : user && !profile?.email_verified_at ? (
+        <VerifyEmailBox email={user.email ?? ""} reason="Verify your email to claim this market. We'll use it to reach you about the claim." />
       ) : (
         <ActionForm action={submitClaim} className="space-y-4 rounded-xl border bg-background p-4">
           {existing?.status === "rejected" && (

@@ -8,7 +8,8 @@ import { PaymentBox } from "@/components/payment-box"
 import { Stars } from "@/components/stars"
 import { buttonVariants } from "@/components/ui/button"
 import { deleteDraft, sendApplication, setApplicationStatus } from "@/actions/applications"
-import { requireVendor } from "@/lib/auth"
+import { getProfile, requireVendor } from "@/lib/auth"
+import { VerifyEmailBox } from "@/components/verify-email-box"
 import { documentTypeLabel } from "@/lib/constants"
 import { formatDate, todayISO } from "@/lib/dates"
 import { formatMoney } from "@/lib/markets"
@@ -27,10 +28,13 @@ const SENT_NOTICES: Record<string, { tone: "good" | "warn"; text: string }> = {
     text: "Saved, but not sent: we don't have an email for this market yet. Apply through their website or Instagram for now.",
   },
   email_failed: { tone: "warn", text: "Saved, but the email didn't go through. Tap “Send again” below." },
+  verify: { tone: "warn", text: "Saved as a draft. Verify your email below, then tap Send now." },
 }
 
 export default async function ApplicationPage({ params, searchParams }: PageProps<"/applications/[id]">) {
-  const { vendor } = await requireVendor()
+  const { user, vendor } = await requireVendor()
+  const profile = await getProfile()
+  const verified = Boolean(profile?.email_verified_at)
   const { id } = await params
   const { sent, reviewed, payment, reported } = await searchParams
   const supabase = await createClient()
@@ -145,9 +149,12 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
 
       <PaymentBox app={app} market={market} payments={(payments ?? []) as Payment[]} stripeReady={stripeReady} />
 
+      {!verified && (app.status === "draft" || (app.status === "submitted" && app.delivered_via === "email" && !app.emailed_at)) && (
+        <VerifyEmailBox email={user.email ?? ""} reason="Verify your email to send this application, so the market can reply to you." />
+      )}
       {app.status === "draft" && (
         <div className="flex gap-2">
-          <ActionButton action={sendApplication.bind(null, app.id)} size="lg" className="flex-1" pendingText={t("Sending…")}>
+          <ActionButton action={sendApplication.bind(null, app.id)} size="lg" className="flex-1" disabled={!verified} pendingText={t("Sending…")}>
             {t("Send now")}
           </ActionButton>
           <ConfirmButton variant="outline" size="lg" action={deleteDraft.bind(null, app.id)} confirmText={t("Delete this draft?")} redirectTo="/applications">

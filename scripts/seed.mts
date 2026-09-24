@@ -519,6 +519,9 @@ async function main() {
   }
   console.log(`  ${SHOPPER_REVIEWS.length} shopper reviews`)
 
+  // Sample accounts count as verified, with a password.
+  await db.from("profiles").update({ email_verified_at: new Date().toISOString(), has_password: true }).like("email", "demo-%@example.com")
+
   console.log(`\nDone! Sample logins (password: ${PASSWORD}):`)
   for (const v of VENDORS) console.log(`  ${v.email}`)
   console.log(`  ${ORGANIZER.email} (organizer of DTLA Night Bazaar)`)

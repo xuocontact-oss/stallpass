@@ -31,6 +31,7 @@ const A = "00000000-0000-0000-0000-00000000000a" // vendor A
 const B = "00000000-0000-0000-0000-00000000000b" // vendor B
 const ADMIN = "00000000-0000-0000-0000-0000000000ad"
 await q(`insert into auth.users values ($1,'a@x.com'),($2,'b@x.com'),($3,'admin@x.com')`, [A, B, ADMIN])
+await q(`update public.profiles set email_verified_at = now()`)
 await q(`update public.profiles set is_super_admin = true where id = $1`, [ADMIN])
 
 async function as(uid) {
@@ -141,6 +142,7 @@ await expect("Vendor cannot see market contact emails", async () => (await rows(
 const O = "00000000-0000-0000-0000-0000000000cc" // an organizer
 await db.exec(`reset role; set request.jwt.claim.sub=''`)
 await q(`insert into auth.users values ($1,'o@x.com')`, [O])
+await q(`update public.profiles set email_verified_at = now()`)
 const m2 = (await rows(`insert into public.markets(slug,name,address,city,lat,lng,organizer_id,approval_status) values('m2','Claimed Market','3 Main St','Los Angeles',34.05,-118.25,$1,'approved') returning id`, [O]))[0].id
 await as(A)
 const past = "2020-06-01", future = "2099-06-01"
@@ -234,6 +236,7 @@ const O2 = "00000000-0000-0000-0000-0000000000dd" // a second organizer
 const C = "00000000-0000-0000-0000-0000000000ee" // someone claiming a market
 await db.exec(`reset role; set request.jwt.claim.sub=''`)
 await q(`insert into auth.users values ($1,'o2@x.com'),($2,'c@x.com')`, [O2, C])
+await q(`update public.profiles set email_verified_at = now()`)
 const m3 = (await rows(`insert into public.markets(slug,name,address,city,lat,lng,approval_status) values('m3','Unclaimed','4 Main St','Los Angeles',34.05,-118.25,'approved') returning id`))[0].id
 const newMarket = (uid, slug) => q(`insert into public.markets(slug,name,address,city,lat,lng,organizer_id) values($1,'New','5 Main','LA',34,-118,$2) returning id, approval_status`, [slug, uid])
 
@@ -409,6 +412,7 @@ await expect("Admin reads partner stats", async () => (await rows(`select * from
 const S = "00000000-0000-0000-0000-0000000000f1", S2 = "00000000-0000-0000-0000-0000000000f2"
 await db.exec(`reset role; set request.jwt.claim.sub=''`)
 await q(`insert into auth.users values ($1,'s@x.com'),($2,'s2@x.com')`, [S, S2])
+await q(`update public.profiles set email_verified_at = now()`)
 await q(`update public.profiles set full_name='Maria Gonzalez Lopez' where id=$1`, [S])
 await as(S)
 await expect("Shopper can set home ZIP and shopper flag", async () => { await q(`update public.profiles set is_shopper=true, home_zip='90026' where id=$1`, [S]) }, true)
@@ -528,6 +532,23 @@ await expect("Real vendor can't list an example market as one they sell at", asy
 await expect("Nobody can claim an example market", async () => { await q(`insert into public.market_claims(market_id,user_id,role) values($1,$2,'Owner')`, [demoM, A]) }, false)
 await expect("Real shoppers can't review an example market", async () => { await q(`insert into public.shopper_reviews(market_id,user_id,visited_on,rating_overall) values($1,$2,current_date - 1,5)`, [demoM, A]) }, false)
 await expect("Real vendor can still apply to real markets", async () => { await q(`insert into public.applications(vendor_id,market_id,event_dates) values($1,$2,$3)`, [vA, m3, ["2099-05-01"]]) }, true)
+
+// --- Email verification -----------------------------------------------------
+const U = "00000000-0000-0000-0000-0000000000f9" // signed up with a password, email not confirmed yet
+await db.exec(`reset role; set request.jwt.claim.sub=''`)
+await q(`insert into auth.users values ($1,'u@x.com')`, [U])
+const mU = (await rows(`insert into public.markets(slug,name,address,city,lat,lng,approval_status) values('mu','Verify Market','9 Main St','LA',34,-118,'approved') returning id`))[0].id
+await as(U)
+await expect("New accounts start unverified", async () => (await rows(`select email_verified_at from public.profiles where id=$1`, [U]))[0].email_verified_at === null, true)
+await expect("People can't mark their own email as verified", async () => { await q(`update public.profiles set email_verified_at=now() where id=$1`, [U]) }, false)
+await expect("People can't set the password flag themselves", async () => { await q(`update public.profiles set has_password=true where id=$1`, [U]) }, false)
+await expect("Unverified account can't review a market", async () => { await q(`insert into public.shopper_reviews(market_id,user_id,visited_on,rating_overall) values($1,$2,current_date - 1,5)`, [mU, U]) }, false)
+await expect("Unverified account can't claim a market", async () => { await q(`insert into public.market_claims(market_id,user_id,role) values($1,$2,'Owner')`, [mU, U]) }, false)
+await db.exec(`reset role; set request.jwt.claim.sub=''`)
+await q(`update public.profiles set email_verified_at=now() where id=$1`, [U])
+await as(U)
+await expect("Once verified, they can review a market", async () => { await q(`insert into public.shopper_reviews(market_id,user_id,visited_on,rating_overall) values($1,$2,current_date - 1,5)`, [mU, U]) }, true)
+await expect("Once verified, they can claim a market", async () => { await q(`insert into public.market_claims(market_id,user_id,role) values($1,$2,'Owner')`, [mU, U]) }, true)
 
 // --- Suspended admin loses powers -----------------------------------------
 await db.exec(`reset role; set request.jwt.claim.sub=''`)

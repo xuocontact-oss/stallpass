@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { BellRing, FileCheck2, Star } from "lucide-react"
-import { CodeSignIn } from "@/components/code-sign-in"
+import { SignUpForm } from "@/components/sign-up-form"
 import { getMyVendor, getUser } from "@/lib/auth"
 import { getT } from "@/lib/i18n/server"
 import { cleanRef } from "@/lib/signup-source"
@@ -58,7 +58,11 @@ export default async function JoinPage({ searchParams }: PageProps<"/join">) {
       </ul>
 
       <div className="rounded-2xl border-2 border-primary/30 bg-background p-4">
-        <CodeSignIn next={next} market={market?.id ?? null} refCode={ref} buttonLabel={t("Get started")} large />
+        <SignUpForm next={next} market={market?.id ?? null} refCode={ref} buttonLabel={t("Get started")} large />
+        <p className="mt-3 text-center text-sm text-muted-foreground">
+          {t("Already have an account?")}{" "}
+          <Link href={`/login?mode=signin&next=${encodeURIComponent(next)}`} className="font-medium text-primary">{t("Sign in")}</Link>
+        </p>
         <p className="mt-3 text-center text-sm">
           <Link href="/why" className="font-medium text-primary">{t("See everything you get →")}</Link>
         </p>

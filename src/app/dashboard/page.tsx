@@ -3,7 +3,8 @@ import { ArrowRight, Plus } from "lucide-react"
 import { DocStatusBadge } from "@/components/doc-status-badge"
 import { MarketCard } from "@/components/market-card"
 import { buttonVariants } from "@/components/ui/button"
-import { requireVendor } from "@/lib/auth"
+import { getProfile, requireVendor } from "@/lib/auth"
+import { VerifyEmailBox } from "@/components/verify-email-box"
 import { commonDocTypes, DOCUMENT_TYPES, documentTypeLabel } from "@/lib/constants"
 import { addDays, daysBetween, formatDate, relativeDays, todayISO } from "@/lib/dates"
 import { compareByUrgency, documentStatus, summarizeDocuments } from "@/lib/documents"
@@ -18,7 +19,8 @@ import { getLang, getT } from "@/lib/i18n/server"
 export const metadata = { title: "Home" }
 
 export default async function DashboardPage() {
-  const { vendor } = await requireVendor()
+  const { user, vendor } = await requireVendor()
+  const profile = await getProfile()
   const t = await getT()
   const lang = await getLang()
   const today = todayISO()
@@ -77,6 +79,17 @@ export default async function DashboardPage() {
           {t("Here's where things stand.")}
         </p>
       </div>
+
+      {!profile?.email_verified_at && <VerifyEmailBox email={user.email ?? ""} />}
+      {!profile?.has_password && (
+        <Link href="/account/password?next=/dashboard" className="flex items-center justify-between gap-3 rounded-xl border bg-background p-4">
+          <span>
+            <span className="block font-semibold">{t("Set a password")}</span>
+            <span className="text-sm text-muted-foreground">{t("So you can sign in with your email and password next time.")}</span>
+          </span>
+          <ArrowRight className="size-5 shrink-0 text-primary" aria-hidden />
+        </Link>
+      )}
 
       {!setup.complete && (
         <Link href={`/onboarding?step=${setup.nextStep}`} className="block rounded-xl border-2 border-primary/40 bg-background p-4">

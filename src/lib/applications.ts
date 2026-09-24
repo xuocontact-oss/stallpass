@@ -5,6 +5,7 @@ import { SHARE_LINK_DAYS } from "@/lib/constants"
 import { newApplicationEmail } from "@/lib/organizer-emails"
 import { sendEmail, siteUrl } from "@/lib/email"
 import { createAdminClient } from "@/lib/supabase/server"
+import { isEmailVerified } from "@/lib/verification"
 import type { Application, Market, Vendor, VendorDocument } from "@/lib/types"
 
 /**
@@ -82,6 +83,8 @@ export async function deliverApplication(applicationId: string): Promise<Deliver
     db.from("market_contacts").select("contact_email, contact_name").eq("market_id", application.market_id).maybeSingle(),
   ])
   if (!market || !vendor) throw new Error("Market or vendor not found")
+  // Nothing goes out until the vendor has confirmed their email.
+  if (!(await isEmailVerified((vendor as { owner_id: string }).owner_id))) throw new Error("Email not verified")
 
   const now = new Date().toISOString()
   const markSent = (fields: Partial<Application>) =>

@@ -1,7 +1,6 @@
 "use client"
 
 import { useRef, useState, useTransition } from "react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,9 +9,9 @@ import { sendSignInCode, verifySignInCode } from "@/actions/auth"
 import { useT } from "@/lib/i18n/client"
 
 /**
- * Sign in or sign up with a 6-digit code: type your email, then the code from
- * the email, all on one screen (fast at a market booth). The email also has a
- * tap-to-sign-in link as a backup.
+ * Sign in with a 6-digit code ("Forgot password?"): type your email, then the
+ * code from the email, all on one screen. The email also has a tap-to-sign-in
+ * link as a backup.
  */
 export function CodeSignIn({
   next,
@@ -118,10 +117,6 @@ export function CodeSignIn({
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
         {pending ? t("Sending…") : (buttonLabel ?? t("Email me a code"))}
       </Button>
-      <p className="text-xs text-muted-foreground">
-        {t("No password needed. By continuing you agree to our")} <Link href="/terms" className="underline">{t("Terms")}</Link> {t("and")}{" "}
-        <Link href="/privacy" className="underline">{t("Privacy Policy")}</Link>.
-      </p>
     </form>
   )
 }

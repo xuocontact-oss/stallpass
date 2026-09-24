@@ -10,6 +10,7 @@ import { formatDate, todayISO } from "@/lib/dates"
 import { formText, friendlyDbError, type ActionState } from "@/lib/form"
 import { checkReadiness } from "@/lib/readiness"
 import { createClient } from "@/lib/supabase/server"
+import { isEmailVerified, VERIFY_FIRST } from "@/lib/verification"
 import type { Application, Market, VendorDocument } from "@/lib/types"
 
 const ACTIVE = ["submitted", "accepted", "waitlisted", "paid"]
@@ -115,7 +116,10 @@ export async function applyToMarket(_prev: ActionState, formData: FormData): Pro
   }
 
   let notice = "draft"
-  if (send) {
+  if (send && !(await isEmailVerified(vendor.owner_id))) {
+    // Saved as a draft; the application page asks them to verify, then send.
+    notice = "verify"
+  } else if (send) {
     try {
       const result = await deliverApplication(app.id)
       notice = result.via === "email" && !result.emailed ? "email_failed" : result.via
@@ -150,6 +154,8 @@ export async function sendApplication(id: string): Promise<ActionState> {
   if (!app) return { error: "Application not found." }
   const canSend = app.status === "draft" || (app.status === "submitted" && app.delivered_via === "email" && !app.emailed_at)
   if (!canSend) return { error: "This application was already sent." }
+  const vendor = await getMyVendor()
+  if (!vendor || !(await isEmailVerified(vendor.owner_id))) return { error: VERIFY_FIRST }
 
   try {
     const result = await deliverApplication(app.id)

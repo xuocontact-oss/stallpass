@@ -3,6 +3,7 @@ import type { EmailOtpType } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
 import { safeNextPath } from "@/lib/form"
 import { cleanRef, recordSignupSource } from "@/lib/signup-source"
+import { markEmailVerified } from "@/lib/verification"
 
 /** The page the sign-in email link opens. It finishes signing the person in. */
 export async function GET(request: NextRequest) {
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
   }
   const ok = Boolean(userId)
   // Came from a market's QR code? Remember it (new accounts only).
+  if (userId) await markEmailVerified(userId) // the link came from their inbox
   if (userId) await recordSignupSource(userId, searchParams.get("m"), cleanRef(searchParams.get("ref")))
 
   return NextResponse.redirect(new URL(ok ? next : "/login?error=link", origin))

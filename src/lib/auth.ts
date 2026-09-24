@@ -15,6 +15,8 @@ export type Profile = {
   home_zip: string | null
   suspended_at: string | null
   suspension_reason: string | null
+  email_verified_at: string | null
+  has_password: boolean
 }
 
 /** The signed-in user, verified with Supabase, or null. */
@@ -40,7 +42,7 @@ export const getProfile = cache(async (): Promise<Profile | null> => {
   const supabase = await createClient()
   const { data } = await supabase
     .from("profiles")
-    .select("id, email, full_name, is_super_admin, is_organizer, is_trusted_organizer, is_shopper, home_zip, suspended_at, suspension_reason")
+    .select("id, email, full_name, is_super_admin, is_organizer, is_trusted_organizer, is_shopper, home_zip, suspended_at, suspension_reason, email_verified_at, has_password")
     .eq("id", user.id)
     .maybeSingle()
   return data

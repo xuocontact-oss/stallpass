@@ -167,6 +167,9 @@ export async function addDemoContent(): Promise<string> {
   // Example Start-hub listings.
   await must(db.from("resources").insert(DEMO_RESOURCES.map((r) => ({ ...r, is_sample: true })), { defaultToNull: false }), "resources")
 
+  // Sample accounts count as verified, with a password.
+  await db.from("profiles").update({ email_verified_at: new Date().toISOString(), has_password: true }).like("email", "demo-%@example.com")
+
   return `Added ${MARKETS.length} example markets, ${reviewCount} vendor reviews and ${SHOPPER_REVIEWS.length} shopper reviews.`
 }
 

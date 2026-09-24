@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { deleteShopperReview, saveShopperReview } from "@/actions/shopper"
-import { getUser } from "@/lib/auth"
+import { getProfile, getUser } from "@/lib/auth"
+import { VerifyEmailBox } from "@/components/verify-email-box"
 import { addDays, todayISO } from "@/lib/dates"
 import { getMarketBySlug } from "@/lib/market-data"
 import { createClient } from "@/lib/supabase/server"
@@ -32,6 +33,7 @@ export default async function ShopperReviewPage({ params }: PageProps<"/markets/
     .eq("user_id", user.id)
     .maybeSingle()
   const t = await getT()
+  const profile = await getProfile()
 
   return (
     <main className="mx-auto w-full max-w-lg space-y-5 px-4 py-6">
@@ -42,6 +44,8 @@ export default async function ShopperReviewPage({ params }: PageProps<"/markets/
       </div>
       {market.organizer_id === user.id ? (
         <p className="rounded-lg bg-muted p-3 text-sm">{t("You run this market, so you can't review it. You can reply to reviews from your dashboard.")}</p>
+      ) : !profile?.email_verified_at ? (
+        <VerifyEmailBox email={user.email ?? ""} reason="Verify your email to post reviews. It keeps reviews real." />
       ) : (
         <ActionForm action={saveShopperReview} className="space-y-5">
           <input type="hidden" name="market_id" value={market.id} />
