@@ -58,7 +58,7 @@ ${docLines.length ? `<ul>${docLines.map((l) => `<li>${e(l)}</li>`).join("")}</ul
     "</div></body>",
     `<div style="background:#fff;border-radius:12px;padding:20px;margin-top:12px;font-size:14px;line-height:1.5">
 <p style="margin:0 0 8px"><strong>Run ${e(market.name)}?</strong> ${input.vendorCount && input.vendorCount >= 3 ? `${input.vendorCount} vendors who sell at your market already use Stallpass. ` : ""}Claim your free listing to get every application with documents already checked, in one place, and collect booth fees online.</p>
-<a href="${e(input.claimUrl)}" style="color:#e0592a;font-weight:600">Claim ${e(market.name)} →</a>
+<a href="${e(input.claimUrl)}" style="color:#c7402b;font-weight:600">Claim ${e(market.name)} →</a>
 </div>
 <p style="font-size:12px;color:#78716c">Reply to this email to reach ${e(vendor.business_name)} directly.</p></div></body>`
   )

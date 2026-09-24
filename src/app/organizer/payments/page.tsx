@@ -22,7 +22,7 @@ export default async function OrganizerPaymentsPage() {
       <Link href="/organizer" className="text-sm text-muted-foreground">← Your markets</Link>
       <h1 className="text-2xl font-bold">Card payments</h1>
       {stripe && stripeIsTestMode() && (
-        <p className="rounded-lg bg-violet-50 p-3 text-sm text-violet-900">
+        <p className="rounded-lg bg-secondary p-3 text-sm">
           <strong>Test mode:</strong> no real money moves. Use Stripe&apos;s test details when asked.
         </p>
       )}

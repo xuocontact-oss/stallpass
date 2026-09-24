@@ -1,37 +1,77 @@
-import { Apple, Flower2, Moon, Shirt, Sparkles, Store, Tent, Truck } from "lucide-react"
+import Image, { type StaticImageData } from "next/image"
+import farmersCrowd from "@/assets/photos/farmers-crowd.jpg"
+import farmersMarket from "@/assets/photos/farmers-market.jpg"
+import nightCooking from "@/assets/photos/night-market-cooking.jpg"
+import nightCrowd from "@/assets/photos/night-market-crowd.jpg"
+import nightNoodles from "@/assets/photos/night-market-noodles.jpg"
+import plantStall from "@/assets/photos/plant-stall.jpg"
+import streetwear from "@/assets/photos/streetwear-vendor.jpg"
+import tacoTruck from "@/assets/photos/taco-truck.jpg"
+import truckLine from "@/assets/photos/truck-line.jpg"
+import truckNight from "@/assets/photos/truck-night.jpg"
 import { cn } from "@/lib/utils"
 
 /**
- * A colorful cover for markets without photos: color and icon depend on the
- * kind of market, with a light pattern so listings look alive.
+ * Cover for markets without their own photos: a market awning in the colour of
+ * the kind of market. Example markets get a stock photo so the demo looks real
+ * (real markets never get a photo that isn't theirs).
  */
-const THEMES: Record<string, { from: string; to: string; Icon: typeof Store }> = {
-  farmers: { from: "#16a34a", to: "#84cc16", Icon: Apple },
-  night: { from: "#312e81", to: "#7c3aed", Icon: Moon },
-  food_truck: { from: "#ea580c", to: "#f59e0b", Icon: Truck },
-  popup: { from: "#db2777", to: "#f97316", Icon: Tent },
-  festival: { from: "#dc2626", to: "#f59e0b", Icon: Sparkles },
-  craft: { from: "#0d9488", to: "#22d3ee", Icon: Flower2 },
-  flea: { from: "#92400e", to: "#d97706", Icon: Shirt },
-  other: { from: "#e0592a", to: "#f59e0b", Icon: Store },
+const STRIPES: Record<string, { a: string; b: string }> = {
+  farmers: { a: "#2f6b3a", b: "#e3eedf" },
+  night: { a: "#1b1a17", b: "#3a3830" },
+  food_truck: { a: "#c7402b", b: "#f9e3de" },
+  popup: { a: "#f2c94c", b: "#fff6da" },
+  festival: { a: "#c7402b", b: "#fff6da" },
+  craft: { a: "#1f6f78", b: "#dcefef" },
+  flea: { a: "#8a5a2b", b: "#f3e6d6" },
+  other: { a: "#c7402b", b: "#f4eee2" },
 }
 
-export function MarketCover({ type, name, className, iconClassName }: { type: string; name: string; className?: string; iconClassName?: string }) {
-  const theme = THEMES[type] ?? THEMES.other
-  // A small twist per market so neighbours don't look identical.
-  const angle = [...name].reduce((a, c) => a + c.charCodeAt(0), 0) % 90
-  const { Icon } = theme
+const PHOTOS: Record<string, StaticImageData[]> = {
+  farmers: [farmersCrowd, farmersMarket, plantStall],
+  night: [nightCooking, nightNoodles, nightCrowd],
+  food_truck: [tacoTruck, truckLine, truckNight],
+  popup: [streetwear, farmersMarket, plantStall],
+  festival: [farmersMarket, truckLine, nightCrowd],
+  craft: [plantStall, streetwear],
+  flea: [streetwear, plantStall],
+  other: [farmersMarket, streetwear],
+}
+
+export function MarketCover({
+  type,
+  name = "",
+  sample = false,
+  className,
+  sizes = "200px",
+  priority = false,
+}: {
+  type: string
+  name?: string
+  sample?: boolean
+  className?: string
+  sizes?: string
+  priority?: boolean
+}) {
+  if (sample) {
+    // Pick by name so neighbouring markets of the same kind look different.
+    const list = PHOTOS[type] ?? PHOTOS.other
+    const photo = list[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % list.length]
+    return (
+      <div className={cn("relative overflow-hidden", className)}>
+        <Image src={photo} alt="" fill sizes={sizes} priority={priority} placeholder="blur" className="object-cover" />
+      </div>
+    )
+  }
+  const s = STRIPES[type] ?? STRIPES.other
   return (
-    <div
-      className={cn("relative grid place-items-center overflow-hidden", className)}
-      style={{ background: `linear-gradient(${120 + angle}deg, ${theme.from}, ${theme.to})` }}
-      aria-hidden
-    >
+    <div className={cn("relative overflow-hidden", className)} aria-hidden>
+      <div className="absolute inset-0" style={{ background: `repeating-linear-gradient(90deg, ${s.a} 0 28px, ${s.b} 28px 56px)` }} />
+      {/* Scalloped awning edge */}
       <div
-        className="absolute inset-0 opacity-20"
-        style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1.5px, transparent 0)", backgroundSize: "14px 14px" }}
+        className="absolute inset-x-0 bottom-0 h-3"
+        style={{ background: `radial-gradient(circle at 14px 0, transparent 13px, var(--paper) 14px) 0 0 / 28px 12px repeat-x` }}
       />
-      <Icon className={cn("relative size-9 text-white drop-shadow", iconClassName)} strokeWidth={1.75} />
     </div>
   )
 }

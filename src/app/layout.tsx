@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"
-import { Geist } from "next/font/google"
+import { Bricolage_Grotesque, Instrument_Sans } from "next/font/google"
 import { SiteFooter } from "@/components/site-footer"
 import { BottomSpacer, SiteHeader } from "@/components/site-header"
 import { Toaster } from "@/components/ui/sonner"
@@ -10,7 +10,8 @@ import { LangProvider } from "@/lib/i18n/client"
 import { getLang } from "@/lib/i18n/server"
 import "./globals.css"
 
-const geistSans = Geist({ variable: "--font-sans", subsets: ["latin"] })
+const bodyFont = Instrument_Sans({ variable: "--font-sans", subsets: ["latin"] })
+const displayFont = Bricolage_Grotesque({ variable: "--font-display", subsets: ["latin"], weight: ["600", "700", "800"] })
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#e0592a",
+  themeColor: "#f4eee2",
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -30,8 +31,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const jar = await cookies()
   const hasChosen = jar.has(LANG_PICKED_COOKIE)
   return (
-    <html lang={lang} className={`${geistSans.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-muted/40">
+    <html lang={lang} className={`${bodyFont.variable} ${displayFont.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col bg-paper">
         <LangProvider lang={lang}>
           <SiteHeader />
           <div className="flex flex-1 flex-col">{children}</div>

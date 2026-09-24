@@ -15,8 +15,8 @@ export default async function MarketOgImage({ params }: { params: Promise<{ slug
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", background: "#fbf6f2", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 80 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 36, fontWeight: 700, color: "#e0592a" }}>
-          <div style={{ width: 56, height: 56, borderRadius: 14, background: "#e0592a", color: "white", fontSize: 36, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>S</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 36, fontWeight: 700, color: "#c7402b" }}>
+          <div style={{ width: 56, height: 56, borderRadius: 14, background: "#c7402b", color: "white", fontSize: 36, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>S</div>
           Stallpass
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>

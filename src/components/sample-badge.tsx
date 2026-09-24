@@ -8,7 +8,7 @@ export function SampleBadge() {
   return (
     <span
       title={t("Example content to show how Stallpass works. Not a real business or event.")}
-      className="inline-flex items-center rounded-full border border-dashed border-violet-400 bg-violet-50 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-violet-700 uppercase"
+      className="inline-flex items-center shrink-0 rounded-md border-2 border-ink bg-white px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase"
     >
       {t("Example")}
     </span>

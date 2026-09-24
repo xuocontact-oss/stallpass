@@ -4,6 +4,7 @@ import { signOut } from "@/actions/auth"
 import { DesktopNav, MobileTabBar } from "@/components/app-nav"
 import { buttonVariants } from "@/components/ui/button"
 import { LanguageButton } from "@/components/language-picker"
+import { Logo } from "@/components/logo"
 import { getMyVendor, getProfile } from "@/lib/auth"
 import { getT } from "@/lib/i18n/server"
 
@@ -15,16 +16,14 @@ export async function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-[1000] border-b bg-background/95 backdrop-blur print:hidden">
-        <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
+      <header className="sticky top-0 z-[1000] border-b-2 border-ink bg-paper/95 backdrop-blur print:hidden">
+        <div className="awning h-1.5" aria-hidden />
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
           <Link
             href={vendor ? "/dashboard" : profile?.is_organizer ? "/organizer" : profile?.is_shopper ? "/markets" : "/"}
-            className="flex items-center gap-2 font-bold text-lg"
+            aria-label="Stallpass"
           >
-            <span className="grid size-7 place-items-center rounded-lg bg-primary text-sm text-primary-foreground">
-              S
-            </span>
-            Stallpass
+            <Logo className="[&_span]:hidden sm:[&_span]:inline" />
           </Link>
           {vendor && <DesktopNav />}
           <div className="ml-auto flex items-center gap-1">

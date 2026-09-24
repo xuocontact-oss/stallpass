@@ -89,7 +89,7 @@ export default async function MarketPage({ params, searchParams }: PageProps<"/m
       </Link>
 
       {photos.length === 0 && (
-        <MarketCover type={market.market_type} name={market.name} className="h-36 rounded-xl sm:h-44" iconClassName="size-14" />
+        <MarketCover type={market.market_type} name={market.name} sample={market.is_sample} priority sizes="(max-width: 768px) 100vw, 768px" className="h-44 rounded-xl border-2 border-ink sm:h-64" />
       )}
 
       {photos.length > 0 && (
@@ -129,7 +129,7 @@ export default async function MarketPage({ params, searchParams }: PageProps<"/m
       </div>
 
       {market.is_sample && (
-        <p className="rounded-xl border-2 border-dashed border-violet-300 bg-violet-50 p-4 text-sm text-violet-950">
+        <p className="rounded-xl border-2 border-dashed border-ink bg-sun/30 p-4 text-sm">
           <span className="font-semibold">{t("This is an example market")}</span>{" "}
           {t("to show how Stallpass works. The ratings and reviews are examples too. Real markets near you are in the")}{" "}
           <Link href="/markets" className="font-medium underline">{t("directory")}</Link>.

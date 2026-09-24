@@ -95,11 +95,11 @@ export function siteUrl(path = ""): string {
 /** Simple, readable email wrapper. `bodyHtml` must already be escaped. */
 export function emailLayout(bodyHtml: string, button?: { label: string; url: string }): string {
   const btn = button
-    ? `<p style="margin:24px 0"><a href="${escapeHtml(button.url)}" style="background:#e0592a;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">${escapeHtml(button.label)}</a></p>`
+    ? `<p style="margin:24px 0"><a href="${escapeHtml(button.url)}" style="background:#c7402b;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">${escapeHtml(button.label)}</a></p>`
     : ""
   return `<!doctype html><html><body style="margin:0;background:#faf7f4;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1c1917">
 <div style="max-width:560px;margin:0 auto;padding:24px">
-<p style="font-weight:700;font-size:18px;color:#e0592a;margin:0 0 16px">Stallpass</p>
+<p style="font-weight:700;font-size:18px;color:#c7402b;margin:0 0 16px">Stallpass</p>
 <div style="background:#fff;border-radius:12px;padding:24px;font-size:15px;line-height:1.55">${bodyHtml}${btn}</div>
 <p style="font-size:12px;color:#78716c;margin-top:16px">Sent by Stallpass, the app for pop-up food vendors and markets.</p>
 </div></body></html>`

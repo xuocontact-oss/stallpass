@@ -78,7 +78,7 @@ export function LanguageButton({ className }: { className?: string }) {
       role="radiogroup"
       aria-label="Language · Idioma"
       className={cn(
-        "relative grid h-9 w-[7.5rem] grid-cols-2 rounded-full bg-emerald-600 p-1 text-sm font-bold shadow-sm ring-2 ring-emerald-600/20",
+        "relative grid h-9 w-[7.5rem] grid-cols-2 rounded-full border-2 border-ink bg-leaf p-0.5 text-sm font-bold",
         pending && "opacity-80",
         className
       )}
@@ -86,7 +86,7 @@ export function LanguageButton({ className }: { className?: string }) {
       <span
         aria-hidden
         className={cn(
-          "absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-white shadow transition-transform duration-300 ease-out",
+          "absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded-full bg-white shadow transition-transform duration-300 ease-out",
           lang === "es" && "translate-x-full"
         )}
       />
@@ -105,7 +105,7 @@ export function LanguageButton({ className }: { className?: string }) {
           onClick={() => lang !== code && setLang(code)}
           className={cn(
             "relative z-10 flex items-center justify-center gap-1 rounded-full transition-colors",
-            lang === code ? "text-emerald-700" : "text-white hover:text-emerald-50"
+            lang === code ? "text-leaf" : "text-white hover:text-sun"
           )}
         >
           <span aria-hidden className="text-base leading-none">{flag}</span>
