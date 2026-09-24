@@ -16,3 +16,4 @@ Swap these for your own market photos any time (same file names).
 | night-market-noodles.jpg | Kelvin Zyteng | https://unsplash.com/photos/Pxmi2vtzgew |
 | night-market-crowd.jpg | Zhen Yao | https://unsplash.com/photos/upLbLDy52fc |
 | craft-stall.jpg | Createasea | https://unsplash.com/photos/tC1HPpiN9LA |
+| hero-burgers.jpg | Provided by the Stallpass owner | (home page hero) |

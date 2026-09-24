@@ -89,6 +89,7 @@ export const es: Record<string, string> = {
   "Browse markets": "Ver mercados",
   "Built for every kind of vendor": "Hecho para todo tipo de vendedor",
   "Burgers & sandwiches": "Hamburguesas y sándwiches",
+  "Burgers being made on green checkered paper at a market stall": "Hamburguesas preparándose sobre papel de cuadros verdes en un puesto del mercado",
   "Business details": "Detalles del negocio",
   "Business license": "Licencia comercial",
   "Business name": "Nombre del negocio",

@@ -12,7 +12,7 @@ import { getLang, getT } from "@/lib/i18n/server"
 import { getDirectory } from "@/lib/market-data"
 import { filterMarkets, formatMoney, parseFilters } from "@/lib/markets"
 import { cn } from "@/lib/utils"
-import heroPhoto from "@/assets/photos/streetwear-vendor.jpg"
+import heroPhoto from "@/assets/photos/hero-burgers.jpg"
 import makersPhoto from "@/assets/photos/craft-stall.jpg"
 import growersPhoto from "@/assets/photos/plant-stall.jpg"
 import trucksPhoto from "@/assets/photos/taco-truck.jpg"
@@ -97,7 +97,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 
         <div className="relative lg:col-span-5">
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border-2 border-ink poster-shadow sm:aspect-[4/3] lg:aspect-[4/5]">
-            <Image src={heroPhoto} alt={t("A clothing vendor and shoppers at an outdoor market")} fill priority placeholder="blur" sizes="(max-width: 1024px) 100vw, 480px" className="object-cover" />
+            <Image src={heroPhoto} alt={t("Burgers being made on green checkered paper at a market stall")} fill priority placeholder="blur" sizes="(max-width: 1024px) 100vw, 480px" className="object-cover" />
           </div>
           <div className="absolute -bottom-6 -left-2 w-64 rotate-[-3deg] rounded-xl border-2 border-ink bg-white p-4 poster-shadow sm:-left-6 sm:w-72">
             <p className="font-heading text-lg font-extrabold">{t("Your documents")}</p>
