@@ -11,7 +11,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   const markets: { slug: string; updated_at: string }[] = []
   // Without database settings (e.g. a build before they're added), list just the fixed pages.
-  const db = url && key ? createClient(url, key, { auth: { persistSession: false } }) : null
+  let db: ReturnType<typeof createClient> | null = null
+  try {
+    if (url && key) db = createClient(url, key, { auth: { persistSession: false } })
+  } catch (e) {
+    console.error("Sitemap: bad database settings, listing fixed pages only.", e)
+  }
   for (let from = 0; db && from < 45000; from += 1000) {
     const { data } = await db
       .from("markets")
